@@ -3,170 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Snake Game Neon</title>
+  <title>Jogo da Cobrinha - GitHub</title>
   <style>
-    :root {
-      --bg-color: #080b10;
-      --card-bg: #111622;
-      --border-color: #1f293d;
-      --text-main: #f0f3f6;
-      --text-muted: #8b949e;
-      --primary-neon: #00f2fe; /* Ciano Neon */
-      --secondary-neon: #4facfe; /* Azul Neon */
-      --food-neon: #ff0844; /* Vermelho/Rosa Neon */
-      --accent-gold: #ffd700;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-
     body {
-      background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(at 50% 20%, rgba(0, 242, 254, 0.15) 0px, transparent 50%),
-        radial-gradient(at 80% 80%, rgba(255, 8, 68, 0.08) 0px, transparent 40%);
-      color: var(--text-main);
-      font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      height: 100vh;
       overflow: hidden;
     }
-
-    .game-wrapper {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      padding: 30px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 
-                  0 0 50px rgba(0, 242, 254, 0.05);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
     h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      margin-bottom: 20px;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+      color: #58a6ff;
     }
-
     #score-board {
-      width: 100%;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
       display: flex;
-      justify-content: space-between;
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      padding: 12px 20px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
+      gap: 20px;
     }
-
-    .score-box span {
-      font-weight: 800;
-      color: var(--primary-neon);
-      text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+    .high-score-container {
+      color: #ffd700; /* Dourado para o Recorde */
     }
-
-    .high-score-box span {
-      font-weight: 800;
-      color: var(--accent-gold);
-      text-shadow: 0 0 10px rgba(192, 177, 91, 0.4);
-    }
-
     .canvas-container {
       position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
     }
-
     canvas {
-      background-color: #0b0f19;
-      border: 2px solid var(--border-color);
-      border-radius: 16px;
+      background-color: #161b22;
+      border: 2px solid #263241;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
       display: block;
     }
-
     #start-message {
       position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(11, 15, 25, 0.85);
-      backdrop-filter: blur(4px);
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
-      font-weight: 600;
-      text-align: center;
-      padding: 20px;
-      transition: all 0.3s ease;
-      gap: 15px;
-    }
-
-    #start-message span {
-      animation: pulse 1.5s infinite ease-in-out;
-      color: var(--primary-neon);
-    }
-
-    .instructions {
-      margin-top: 20px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    kbd {
-      background: #21262d;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(22, 27, 34, 0.9);
+      color: #58a6ff;
+      padding: 15px 20px;
       border: 1px solid #30363d;
       border-radius: 6px;
-      padding: 3px 6px;
-      font-size: 0.75rem;
-      color: var(--text-main);
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: center;
+      pointer-events: none;
     }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.03); }
+    .instructions {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #8b949e;
     }
   </style>
 </head>
 <body>
 
-  <div class="game-wrapper">
-    <h1>CYBER SNAKE</h1>
-    
-    <div id="score-board">
-      <div class="score-box">PONTOS: <span id="score">0</span></div>
-      <div class="high-score-box">🏆 RECORDE: <span id="high-score">0</span></div>
-    </div>
-    
-    <div class="canvas-container">
-      <canvas id="gameCanvas" width="400" height="400"></canvas>
-      <div id="start-message">
-        <span>PRESSIONE QUALQUER TECLA</span>
-        <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: normal;">para iniciar a simulação</div>
-      </div>
-    </div>
-    
-    <div class="instructions">
-      Use <kbd>▲</kbd> <kbd>▼</kbd> <kbd>◀</kbd> <kbd>▶</kbd> ou <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> para controlar.
-    </div>
+  <h1>🐍 Jogo da Cobrinha</h1>
+  <div id="score-board">
+    <div>Pontuação: <span id="score">0</span></div>
+    <div class="high-score-container">🏆 Recorde: <span id="high-score">0</span></div>
+  </div>
+  
+  <div class="canvas-container">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="start-message">Pressione qualquer seta ou W, A, S, D para iniciar</div>
+  </div>
+  
+  <div class="instructions">
+    Use as **setas do teclado** ou as teclas **W, A, S, D** para jogar.
   </div>
 
   <script>
@@ -179,39 +94,31 @@
     const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
-    // Inicializa a cobra no meio com tamanho 3 para melhor visual
-    let snake = [
-      { x: 10, y: 10 },
-      { x: 9, y: 10 },
-      { x: 8, y: 10 }
-    ];
-    let food = { x: 14, y: 10 };
-    let dx = 1; // Já começa apontando para a direita por padrão
+    let snake = [{ x: 10, y: 10 }];
+    let food = { x: 15, y: 15 };
+    let dx = 0;
     let dy = 0;
-    let nextDx = 1;
+    let nextDx = 0;
     let nextDy = 0;
     let score = 0;
     let gameInterval;
     let changingDirection = false;
     let gameStarted = false;
 
+    // Carrega o recorde salvo anteriormente (se existir)
     let highScore = localStorage.getItem("snakeHighScore") || 0;
     highScoreElement.innerText = highScore;
 
-    // Render inicial estático
-    renderGameInit();
-
-    function renderGameInit() {
-      clearCanvas();
-      drawGridBackground();
-      drawFood();
-      drawSnake();
-    }
+    // Desenha o estado inicial parado na tela
+    clearCanvas();
+    drawFood();
+    drawSnake();
 
     function main() {
       if (hasGameEnded()) {
+        // Verifica e atualiza o recorde final antes de reiniciar
         checkHighScore();
-        alert(`FIM DE JOGO!\nSua Pontuação: ${score}`);
+        alert(`Game Over! Sua pontuação foi: ${score}`);
         document.location.reload();
         return;
       }
@@ -221,85 +128,25 @@
       dy = nextDy;
 
       clearCanvas();
-      drawGridBackground();
       drawFood();
       moveSnake();
       drawSnake();
 
-      gameInterval = setTimeout(main, 90); // Levemente mais rápido para melhor jogabilidade
+      gameInterval = setTimeout(main, 100);
     }
 
     function clearCanvas() {
-      ctx.fillStyle = "#0b0f19";
+      ctx.fillStyle = "#161b22";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // Adiciona linhas de grade sutis estilo retro-futurista
-    function drawGridBackground() {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
-      ctx.lineWidth = 1;
-      for (let i = 0; i < tileCount; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * gridSize, 0);
-        ctx.lineTo(i * gridSize, canvas.height);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(0, i * gridSize);
-        ctx.lineTo(canvas.width, i * gridSize);
-        ctx.stroke();
-      }
     }
 
     function drawSnake() {
       snake.forEach((part, index) => {
-        // Cria efeito de degradê do Ciano para o Azul escuro ao longo do corpo
-        const gradient = ctx.createLinearGradient(
-          part.x * gridSize, part.y * gridSize, 
-          (part.x + 1) * gridSize, (part.y + 1) * gridSize
-        );
-        
-        if (index === 0) {
-          gradient.addColorStop(0, '#00f2fe');
-          gradient.addColorStop(1, '#4facfe');
-        } else {
-          // Esmaece a cor conforme chega perto da cauda
-          const alpha = Math.max(0.3, 1 - (index / snake.length));
-          gradient.addColorStop(0, `rgba(79, 172, 254, ${alpha})`);
-          gradient.addColorStop(1, `rgba(0, 242, 254, ${alpha * 0.6})`);
-        }
-
-        ctx.fillStyle = gradient;
-        
-        // Desenha partes arredondadas para um visual fluido e orgânico
-        const radius = index === 0 ? 8 : 4; // Cabeça mais redonda
-        drawRoundedRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, gridSize - 2, radius);
-        
-        // Efeito extra de brilho neon apenas na cabeça
-        if (index === 0) {
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = '#00f2fe';
-          ctx.fill();
-          ctx.shadowBlur = 0; // Reseta sombra para o resto do corpo
-        } else {
-          ctx.fill();
-        }
+        ctx.fillStyle = index === 0 ? "#238636" : "#2ea043"; // Verde estilo GitHub
+        ctx.strokeStyle = "#161b22";
+        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
       });
-    }
-
-    // Função auxiliar para desenhar blocos arredondados
-    function drawRoundedRect(x, y, width, height, radius) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height - radius);
-      ctx.quadraticCurveTo(x, y + height, x, y + height);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
     }
 
     function moveSnake() {
@@ -311,6 +158,7 @@
         score += 10;
         scoreElement.innerText = score;
         
+        // Atualiza o recorde em tempo real se o jogador superar a marca atual
         if (score > highScore) {
           highScore = score;
           highScoreElement.innerText = highScore;
@@ -326,21 +174,82 @@
       food.x = Math.floor(Math.random() * tileCount);
       food.y = Math.floor(Math.random() * tileCount);
 
-      // Garante que a comida não nasça em cima da cobra
-      for (let part of snake) {
-        if (part.x === food.x && part.y === food.y) {
-          generateFood();
-          break;
-        }
-      }
+      snake.forEach(part => {
+        const hasEaten = part.x === food.x && part.y === food.y;
+        if (hasEaten) generateFood();
+      });
     }
 
     function drawFood() {
-      // Comida com efeito pulsar gerado pela sombra neon
-      ctx.shadowBlur = 12;
-      ctx.shadowColor = '#ff0844';
-      ctx.fillStyle = '#ff0844';
-      
-      // Comida circular/arredondada simula uma fruta de energia
-      ctx.beginPath();
-      const centerX = food.x * gridSize + gridSize / 2;
+      ctx.fillStyle = "#f85149"; // Vermelho
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    }
+
+    function hasGameEnded() {
+      for (let i = 4; i < snake.length; i++) {
+        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+      }
+
+      const hitLeftWall = snake[0].x < 0;
+      const hitRightWall = snake[0].x >= tileCount;
+      const hitTopWall = snake[0].y < 0;
+      const hitBottomWall = snake[0].y >= tileCount;
+
+      return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+    }
+
+    function checkHighScore() {
+      if (score > localStorage.getItem("snakeHighScore")) {
+        localStorage.setItem("snakeHighScore", score);
+      }
+    }
+
+    window.addEventListener("keydown", changeDirection);
+
+    function changeDirection(event) {
+      const LEFT_KEY = 37;
+      const RIGHT_KEY = 39;
+      const UP_KEY = 38;
+      const DOWN_KEY = 40;
+
+      if (changingDirection) return;
+      changingDirection = true;
+
+      const keyPressed = event.keyCode;
+      const key = event.key.toLowerCase();
+
+      const goingUp = dy === -1;
+      const goingDown = dy === 1;
+      const goingRight = dx === 1;
+      const goingLeft = dx === -1;
+
+      // Se o jogo ainda não começou, inicia ao apertar um botão válido
+      if (!gameStarted) {
+        const validKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'];
+        if (validKeys.includes(key) || [LEFT_KEY, RIGHT_KEY, UP_KEY, DOWN_KEY].includes(keyPressed)) {
+          gameStarted = true;
+          startMessage.style.display = "none";
+          main();
+        }
+      }
+
+      if ((keyPressed === LEFT_KEY || key === 'a') && !goingRight) {
+        nextDx = -1;
+        nextDy = 0;
+      }
+      if ((keyPressed === UP_KEY || key === 'w') && !goingDown) {
+        nextDx = 0;
+        nextDy = -1;
+      }
+      if ((keyPressed === RIGHT_KEY || key === 'd') && !goingLeft) {
+        nextDx = 1;
+        nextDy = 0;
+      }
+      if ((keyPressed === DOWN_KEY || key === 's') && !goingUp) {
+        nextDx = 0;
+        nextDy = 1;
+      }
+    }
+  </script>
+</body>
+</html>
