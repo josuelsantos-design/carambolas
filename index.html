@@ -1,303 +1,201 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Neon Breakout</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: radial-gradient(circle, #1a1a2e 0%, #0f0f1a 100%);
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
-            user-select: none;
-        }
-        .game-container {
-            position: relative;
-            text-align: center;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: #00f2fe;
-            text-shadow: 0 0 10px #00f2fe, 0 0 20px #4facfe;
-        }
-        .hud {
-            display: flex;
-            justify-content: space-between;
-            width: 800px;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px 10px 0 0;
-            border: 2px solid rgba(0, 242, 254, 0.3);
-            border-bottom: none;
-            font-size: 1.1rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-        .hud span {
-            color: #4facfe;
-            text-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
-        }
-        canvas {
-            background: #0a0a19;
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.15);
-            border: 2px solid #00f2fe;
-            border-radius: 0 0 10px 10px;
-            display: block;
-        }
-        .screen {
-            position: absolute;
-            top: 61px;
-            left: 0;
-            width: 800px;
-            height: 500px;
-            background: rgba(10, 10, 25, 0.96);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0 0 10px 10px;
-            z-index: 100;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .screen h2 {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            color: #ff007f;
-            text-shadow: 0 0 15px #ff007f;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .btn {
-            padding: 14px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #fff;
-            background: linear-gradient(45deg, #00f2fe, #4facfe);
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-            transition: transform 0.15s processes, box-shadow 0.15s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 242, 254, 0.7);
-        }
-        .controls-hint {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #666;
-            letter-spacing: 0.5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Cobrinha - GitHub</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+      color: #748ba5;
+    }
+    #score-board {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    canvas {
+      background-color: #161b22;
+      border: 2px solid #30363d;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    }
+    .instructions {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #8b949e;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <h1>Neon Breakout</h1>
-        <div class="hud">
-            <div>FASE: <span id="level-display">1</span></div>
-            <div>PONTOS: <span id="score-display">0</span></div>
-            <div>VIDAS: <span id="lives-display">♥♥♥</span></div>
-        </div>
-        <canvas id="gameCanvas" width="800" height="500"></canvas>
+  <h1>🐍 Jogo da Cobrinha</h1>
+  <div id="score-board">Pontuação: <span id="score">0</span></div>
+  
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  
+  <div class="instructions">
+    Use as **setas do teclado** ou as teclas **W, A, S, D** para mover a cobrinha.
+  </div>
 
-        <!-- Telas de Interface -->
-        <div id="start-screen" class="screen">
-            <h2 style="color: #00f2fe; text-shadow: 0 0 15px #00f2fe;">Desafio Neon</h2>
-            <button class="btn" id="start-btn">Jogar</button>
-            <div class="controls-hint">Use o mouse ou as setas (← e →) / Espaço para jogar</div>
-        </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreElement = document.getElementById("score");
 
-        <div id="game-over-screen" class="screen hidden">
-            <h2>Fim de Jogo</h2>
-            <button class="btn" id="retry-btn">Tentar Novamente</button>
-        </div>
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
 
-        <div id="victory-screen" class="screen hidden">
-            <h2 style="color: #00ff66; text-shadow: 0 0 15px #00ff66;">Você Venceu!</h2>
-            <button class="btn" id="victory-btn">Jogar de Novo</button>
-        </div>
-    </div>
+    let snake = [
+      { x: 10, y: 10 }
+    ];
+    let food = { x: 15, y: 15 };
+    let dx = 0;
+    let dy = 0;
+    let nextDx = 0;
+    let nextDy = 0;
+    let score = 0;
+    let gameInterval;
+    let changingDirection = false;
 
-<script>
-    window.addEventListener('DOMContentLoaded', () => {
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+    function main() {
+      if (hasGameEnded()) {
+        alert(`Game Over! Sua pontuação foi: ${score}`);
+        document.location.reload();
+        return;
+      }
 
-        const scoreDisplay = document.getElementById("score-display");
-        const livesDisplay = document.getElementById("lives-display");
-        const levelDisplay = document.getElementById("level-display");
+      changingDirection = false;
+      dx = nextDx;
+      dy = nextDy;
 
-        const startScreen = document.getElementById("start-screen");
-        const gameOverScreen = document.getElementById("game-over-screen");
-        const victoryScreen = document.getElementById("victory-screen");
+      clearCanvas();
+      drawFood();
+      moveSnake();
+      drawSnake();
 
-        let score = 0;
-        let lives = 3;
-        let currentLevel = 1;
-        let gameRunning = false;
-        let animationFrameId = null;
+      gameInterval = setTimeout(main, 100);
+    }
 
-        const paddle = {
-            width: 130,
-            height: 15,
-            x: (800 - 130) / 2,
-            y: 500 - 30,
-            speed: 9,
-            dx: 0,
-            color: "#00f2fe",
-            glow: "#4facfe"
-        };
+    function clearCanvas() {
+      ctx.fillStyle = "#161b22";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
-        const ball = {
-            x: 400,
-            y: 450,
-            radius: 8,
-            speed: 5,
-            dx: 4,
-            dy: -4,
-            color: "#ffffff",
-            glow: "#ffffff"
-        };
+    function drawSnake() {
+      snake.forEach((part, index) => {
+        ctx.fillStyle = index === 0  ? "#238636" : "#2ea043"; // Verde estilo GitHub
+        ctx.strokeStyle = "#161b22";
+        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+      });
+    }
 
-        const brickConfig = {
-            rowCount: 5,
-            columnCount: 8,
-            width: 82,
-            height: 22,
-            padding: 12,
-            offsetTop: 45,
-            offsetLeft: 32
-        };
+    function moveSnake() {
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+      snake.unshift(head);
 
-        const levelColors = {
-            1: ["#ff007f", "#ff00aa", "#ff00d4", "#d400ff", "#a900ff"],
-            2: ["#00f2fe", "#00c6ff", "#0072ff", "#003cff", "#001eff"],
-            3: ["#ff3300", "#ff6600", "#ff9900", "#ffcc00", "#ffff00"]
-        };
+      const hasEatenFood = head.x === food.x && head.y === food.y;
+      if (hasEatenFood) {
+        score += 10;
+        scoreElement.innerText = score;
+        generateFood();
+      } else {
+        snake.pop();
+      }
+    }
 
-        let bricks = [];
+    function generateFood() {
+      food.x = Math.floor(Math.random() * tileCount);
+      food.y = Math.floor(Math.random() * tileCount);
 
-        function initBricks() {
-            bricks = [];
-            for (let c = 0; c < brickConfig.columnCount; c++) {
-                bricks[c] = [];
-                for (let r = 0; r < brickConfig.rowCount; r++) {
-                    bricks[c][r] = { x: 0, y: 0, status: 1, color: levelColors[currentLevel][r] };
-                }
-            }
+      snake.forEach(part => {
+        const hasEaten = part.x === food.x && part.y === food.y;
+        if (hasEaten) generateFood();
+      });
+    }
+
+    function drawFood() {
+      ctx.fillStyle = "#f85149"; // Vermelho
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    }
+
+    function hasGameEnded() {
+      for (let i = 4; i < snake.length; i++) {
+        if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
+      }
+
+      const hitLeftWall = snake[0].x < 0;
+      const hitRightWall = snake[0].x >= tileCount;
+      const hitToptWall = snake[0].y < 0;
+      const hitBottomWall = snake[0].y >= tileCount;
+
+      return hitLeftWall || hitRightWall || hitToptWall || hitBottomWall;
+    }
+
+    window.addEventListener("keydown", changeDirection);
+
+    function changeDirection(event) {
+      const LEFT_KEY = 37;
+      const RIGHT_KEY = 39;
+      const UP_KEY = 38;
+      const DOWN_KEY = 40;
+
+      if (changingDirection) return;
+      changingDirection = true;
+
+      const keyPressed = event.keyCode;
+      const key = event.key.toLowerCase();
+
+      const goingUp = dy === -1;
+      const goingDown = dy === 1;
+      const goingRight = dx === 1;
+      const goingLeft = dx === -1;
+
+      if ((keyPressed === LEFT_KEY || key === 'a') && !goingRight) {
+        nextDx = -1;
+        nextDy = 0;
+      }
+      if ((keyPressed === UP_KEY || key === 'w') && !goingDown) {
+        nextDx = 0;
+        nextDy = -1;
+      }
+      if ((keyPressed === RIGHT_KEY || key === 'd') && !goingLeft) {
+        nextDx = 1;
+        nextDy = 0;
+      }
+      if ((keyPressed === DOWN_KEY || key === 's') && !goingUp) {
+        nextDx = 0;
+        nextDy = 1;
+      }
+    }
+
+    // Iniciar o jogo pressionando uma tecla de direção
+    window.addEventListener("keydown", function startOnce() {
+      if (dx === 0 && dy === 0) {
+        const key = event.key.toLowerCase();
+        if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'].includes(key)) {
+          main();
+          window.removeEventListener("keydown", startOnce);
         }
-
-        // Eventos de Input
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Right" || e.key === "ArrowRight") paddle.dx = paddle.speed;
-            if (e.key === "Left" || e.key === "ArrowLeft") paddle.dx = -paddle.speed;
-            
-            if (e.key === " " || e.code === "Space") {
-                e.preventDefault();
-                if (!gameRunning) {
-                    handleActionTrigger();
-                }
-            }
-        });
-
-        document.addEventListener("keyup", (e) => {
-            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "Left" || e.key === "ArrowLeft") {
-                paddle.dx = 0;
-            }
-        });
-
-        canvas.addEventListener("mousemove", (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const relativeX = e.clientX - rect.left;
-            if (relativeX > 0 && relativeX < canvas.width) {
-                paddle.x = relativeX - paddle.width / 2;
-            }
-        });
-
-        // Interação de toque para mobile/trackpads
-        window.addEventListener("mousemove", (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const relativeX = e.clientX - rect.left;
-            if (relativeX >= 0 && relativeX <= rect.width) {
-                const scaleX = canvas.width / rect.width;
-                paddle.x = (relativeX * scaleX) - paddle.width / 2;
-            }
-        });
-
-        function handleActionTrigger() {
-            if (!startScreen.classList.contains("hidden")) {
-                startGame();
-            } else if (!gameOverScreen.classList.contains("hidden") || !victoryScreen.classList.contains("hidden")) {
-                restartGame();
-            }
-        }
-
-        document.getElementById("start-btn").addEventListener("click", startGame);
-        document.getElementById("retry-btn").addEventListener("click", restartGame);
-        document.getElementById("victory-btn").addEventListener("click", restartGame);
-
-        function startGame() {
-            startScreen.classList.add("hidden");
-            gameOverScreen.classList.add("hidden");
-            victoryScreen.classList.add("hidden");
-            
-            score = 0;
-            lives = 3;
-            currentLevel = 1;
-            
-            updateHUD();
-            loadLevel();
-            
-            if (!gameRunning) {
-                gameRunning = true;
-                if (animationFrameId) cancelAnimationFrame(animationFrameId);
-                animationFrameId = requestAnimationFrame(gameLoop);
-            }
-        }
-
-        function restartGame() {
-            startGame();
-        }
-
-        function loadLevel() {
-            initBricks();
-            resetBallAndPaddle();
-            ball.speed = 4 + (currentLevel * 1.5);
-            
-            const angle = (Math.random() * 0.6) + 0.2; 
-            ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1) * angle;
-            ball.dy = -ball.speed;
-            
-            levelDisplay.textContent = currentLevel;
-        }
-
-        function resetBallAndPaddle() {
-            paddle.x = (canvas.width - paddle.width) / 2;
-            ball.x = canvas.width / 2;
-            ball.y = paddle.y - 20;
-            ball.dy = -ball.speed;
-            ball.dx = (Math.random() > 0.5 ? 3 : -3);
-        }
-
-        function updateHUD() {
-            scoreDisplay.textContent = score;
+      }
+    });
+  </script>
+</body>
+</html>
