@@ -20,6 +20,7 @@
             justify-content: center;
             min-height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
         .game-container {
             position: relative;
@@ -37,10 +38,10 @@
             display: flex;
             justify-content: space-between;
             width: 800px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 10px 10px 0 0;
-            border: 1px solid rgba(0, 242, 254, 0.3);
+            border: 2px solid rgba(0, 242, 254, 0.3);
             border-bottom: none;
             font-size: 1.1rem;
             font-weight: bold;
@@ -51,56 +52,60 @@
             text-shadow: 0 0 5px rgba(79, 172, 254, 0.5);
         }
         canvas {
-            background: rgba(10, 10, 25, 0.85);
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.6);
+            background: #0a0a19;
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.15);
             border: 2px solid #00f2fe;
             border-radius: 0 0 10px 10px;
             display: block;
         }
         .screen {
             position: absolute;
-            top: 55px;
+            top: 61px;
             left: 0;
             width: 800px;
             height: 500px;
-            background: rgba(15, 15, 26, 0.9);
+            background: rgba(10, 10, 25, 0.96);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             border-radius: 0 0 10px 10px;
-            transition: all 0.3s ease;
+            z-index: 100;
         }
-        .screen.hidden {
-            display: none;
+        .hidden {
+            display: none !important;
         }
         .screen h2 {
             font-size: 3rem;
             margin-bottom: 20px;
             color: #ff007f;
             text-shadow: 0 0 15px #ff007f;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .btn {
-            padding: 12px 35px;
+            padding: 14px 40px;
             font-size: 1.2rem;
             font-weight: bold;
             color: #fff;
-            background: linear-gradient(45deg, #2a3a3a, #4facfe);
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
             border: none;
             border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.15s processes, box-shadow 0.15s;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
         .btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 25px rgba(0, 242, 254, 0.7);
         }
         .controls-hint {
-            margin-top: 15px;
+            margin-top: 20px;
             font-size: 0.9rem;
-            color: #888;
+            color: #666;
+            letter-spacing: 0.5px;
         }
     </style>
 </head>
@@ -111,288 +116,188 @@
         <div class="hud">
             <div>FASE: <span id="level-display">1</span></div>
             <div>PONTOS: <span id="score-display">0</span></div>
-            <div>VIDAS: <span id="lives-display">3</span></div>
+            <div>VIDAS: <span id="lives-display">♥♥♥</span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="500"></canvas>
 
-        <!-- Telas de Menu, Game Over e Vitória -->
+        <!-- Telas de Interface -->
         <div id="start-screen" class="screen">
             <h2 style="color: #00f2fe; text-shadow: 0 0 15px #00f2fe;">Desafio Neon</h2>
-            <button class="btn" onclick="startGame()">Jogar</button>
-            <div class="controls-hint">Use o mouse ou as setas (← e →) do teclado para mover a plataforma</div>
+            <button class="btn" id="start-btn">Jogar</button>
+            <div class="controls-hint">Use o mouse ou as setas (← e →) / Espaço para jogar</div>
         </div>
 
         <div id="game-over-screen" class="screen hidden">
             <h2>Fim de Jogo</h2>
-            <button class="btn" onclick="restartGame()">Tentar Novamente</button>
+            <button class="btn" id="retry-btn">Tentar Novamente</button>
         </div>
 
         <div id="victory-screen" class="screen hidden">
             <h2 style="color: #00ff66; text-shadow: 0 0 15px #00ff66;">Você Venceu!</h2>
-            <button class="btn" onclick="restartGame()">Jogar de Novo</button>
+            <button class="btn" id="victory-btn">Jogar de Novo</button>
         </div>
     </div>
 
 <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    window.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
 
-    // Displays da HUD
-    const scoreDisplay = document.getElementById("score-display");
-    const livesDisplay = document.getElementById("lives-display");
-    const levelDisplay = document.getElementById("level-display");
+        const scoreDisplay = document.getElementById("score-display");
+        const livesDisplay = document.getElementById("lives-display");
+        const levelDisplay = document.getElementById("level-display");
 
-    // Telas
-    const startScreen = document.getElementById("start-screen");
-    const gameOverScreen = document.getElementById("game-over-screen");
-    const victoryScreen = document.getElementById("victory-screen");
+        const startScreen = document.getElementById("start-screen");
+        const gameOverScreen = document.getElementById("game-over-screen");
+        const victoryScreen = document.getElementById("victory-screen");
 
-    // Estados Globais do Jogo
-    let score = 0;
-    let lives = 3;
-    let currentLevel = 1;
-    let gameRunning = false;
+        let score = 0;
+        let lives = 3;
+        let currentLevel = 1;
+        let gameRunning = false;
+        let animationFrameId = null;
 
-    // Configurações da Raquete (Paddle)
-    const paddle = {
-        width: 120,
-        height: 15,
-        x: (canvas.width - 120) / 2,
-        y: canvas.height - 30,
-        speed: 8,
-        dx: 0,
-        color: "#00f2fe",
-        glow: "#4facfe"
-    };
+        const paddle = {
+            width: 130,
+            height: 15,
+            x: (800 - 130) / 2,
+            y: 500 - 30,
+            speed: 9,
+            dx: 0,
+            color: "#00f2fe",
+            glow: "#4facfe"
+        };
 
-    // Configurações da Bola
-    const ball = {
-        x: canvas.width / 2,
-        y: canvas.height - 45,
-        radius: 8,
-        speed: 5,
-        dx: 4,
-        dy: -4,
-        color: "#fff",
-        glow: "#fff"
-    };
+        const ball = {
+            x: 400,
+            y: 450,
+            radius: 8,
+            speed: 5,
+            dx: 4,
+            dy: -4,
+            color: "#ffffff",
+            glow: "#ffffff"
+        };
 
-    // Configurações dos Blocos
-    const brickConfig = {
-        rowCount: 5,
-        columnCount: 8,
-        width: 80,
-        height: 25,
-        padding: 12,
-        offsetTop: 40,
-        offsetLeft: 35
-    };
+        const brickConfig = {
+            rowCount: 5,
+            columnCount: 8,
+            width: 82,
+            height: 22,
+            padding: 12,
+            offsetTop: 45,
+            offsetLeft: 32
+        };
 
-    // Cores das Camadas de Blocos por Fase (Estilo Degradê Neon)
-    const levelColors = {
-        1: ["#ff007f", "#ff00aa", "#ff00d4", "#d400ff", "#a900ff"], // Tons de Rosa/Roxo
-        2: ["#00f2fe", "#00c6ff", "#0072ff", "#003cff", "#001eff"], // Tons de Azul
-        3: ["#ff3300", "#ff6600", "#ff9900", "#ffcc00", "#ffff00"]  // Tons de Fogo/Neon
-    };
+        const levelColors = {
+            1: ["#ff007f", "#ff00aa", "#ff00d4", "#d400ff", "#a900ff"],
+            2: ["#00f2fe", "#00c6ff", "#0072ff", "#003cff", "#001eff"],
+            3: ["#ff3300", "#ff6600", "#ff9900", "#ffcc00", "#ffff00"]
+        };
 
-    let bricks = [];
+        let bricks = [];
 
-    // Inicializa a matriz de blocos com base na fase atual
-    function initBricks() {
-        bricks = [];
-        for (let c = 0; c < brickConfig.columnCount; c++) {
-            bricks[c] = [];
-            for (let r = 0; r < brickConfig.rowCount; r++) {
-                // Na fase 2 e 3, podemos criar padrões diferentes se quisermos. 
-                // Por padrão, cria um grid completo.
-                bricks[c][r] = { x: 0, y: 0, status: 1, color: levelColors[currentLevel][r] };
-            }
-        }
-    }
-
-    // Ouvintes de Controles
-    document.addEventListener("keydown", keyDownHandler);
-    document.addEventListener("keyup", keyUpHandler);
-    document.addEventListener("mousemove", mouseMoveHandler);
-
-    function keyDownHandler(e) {
-        if (e.key === "Right" || e.key === "ArrowRight") paddle.dx = paddle.speed;
-        if (e.key === "Left" || e.key === "ArrowLeft") paddle.dx = -paddle.speed;
-    }
-
-    function keyUpHandler(e) {
-        if (e.key === "Right" || e.key === "ArrowRight" || e.key === "Left" || e.key === "ArrowLeft") {
-            paddle.dx = 0;
-        }
-    }
-
-    function mouseMoveHandler(e) {
-        const relativeX = e.clientX - canvas.getBoundingClientRect().left;
-        if (relativeX > 0 && relativeX < canvas.width) {
-            paddle.x = relativeX - paddle.width / 2;
-        }
-    }
-
-    // Funções de Inicialização e Fluxo de Jogo
-    function startGame() {
-        startScreen.classList.add("hidden");
-        initGameSession();
-    }
-
-    function initGameSession() {
-        score = 0;
-        lives = 3;
-        currentLevel = 1;
-        updateHUD();
-        loadLevel();
-        gameRunning = true;
-        requestAnimationFrame(gameLoop);
-    }
-
-    function restartGame() {
-        gameOverScreen.classList.add("hidden");
-        victoryScreen.classList.add("hidden");
-        initGameSession();
-    }
-
-    function loadLevel() {
-        initBricks();
-        resetBallAndPaddle();
-        // Aumenta a velocidade da bola conforme as fases avançam
-        ball.speed = 4 + currentLevel * 1.2;
-        ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
-        ball.dy = -ball.speed;
-        levelDisplay.textContent = currentLevel;
-    }
-
-    function resetBallAndPaddle() {
-        paddle.x = (canvas.width - paddle.width) / 2;
-        ball.x = canvas.width / 2;
-        ball.y = paddle.y - 15;
-        ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1);
-        ball.dy = -ball.speed;
-    }
-
-    function updateHUD() {
-        scoreDisplay.textContent = score;
-        livesDisplay.textContent = "♥ ".repeat(lives).trim() || "0";
-    }
-
-    // Lógica de Detecção de Colisão
-    function collisionDetection() {
-        let allDestroyed = true;
-        for (let c = 0; c < brickConfig.columnCount; c++) {
-            for (let r = 0; r < brickConfig.rowCount; r++) {
-                let b = bricks[c][r];
-                if (b.status === 1) {
-                    allDestroyed = false; // Se sobrou um bloco ativo, não venceu a fase ainda
-                    if (ball.x > b.x && ball.x < b.x + brickConfig.width && ball.y > b.y && ball.y < b.y + brickConfig.height) {
-                        ball.dy = -ball.dy;
-                        b.status = 0;
-                        score += 10;
-                        updateHUD();
-                    }
+        function initBricks() {
+            bricks = [];
+            for (let c = 0; c < brickConfig.columnCount; c++) {
+                bricks[c] = [];
+                for (let r = 0; r < brickConfig.rowCount; r++) {
+                    bricks[c][r] = { x: 0, y: 0, status: 1, color: levelColors[currentLevel][r] };
                 }
             }
         }
 
-        if (allDestroyed && gameRunning) {
-            if (currentLevel < 3) {
-                currentLevel++;
-                loadLevel();
-            } else {
-                gameRunning = false;
-                victoryScreen.classList.remove("hidden");
+        // Eventos de Input
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight") paddle.dx = paddle.speed;
+            if (e.key === "Left" || e.key === "ArrowLeft") paddle.dx = -paddle.speed;
+            
+            if (e.key === " " || e.code === "Space") {
+                e.preventDefault();
+                if (!gameRunning) {
+                    handleActionTrigger();
+                }
+            }
+        });
+
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "Right" || e.key === "ArrowRight" || e.key === "Left" || e.key === "ArrowLeft") {
+                paddle.dx = 0;
+            }
+        });
+
+        canvas.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            if (relativeX > 0 && relativeX < canvas.width) {
+                paddle.x = relativeX - paddle.width / 2;
+            }
+        });
+
+        // Interação de toque para mobile/trackpads
+        window.addEventListener("mousemove", (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const relativeX = e.clientX - rect.left;
+            if (relativeX >= 0 && relativeX <= rect.width) {
+                const scaleX = canvas.width / rect.width;
+                paddle.x = (relativeX * scaleX) - paddle.width / 2;
+            }
+        });
+
+        function handleActionTrigger() {
+            if (!startScreen.classList.contains("hidden")) {
+                startGame();
+            } else if (!gameOverScreen.classList.contains("hidden") || !victoryScreen.classList.contains("hidden")) {
+                restartGame();
             }
         }
-    }
 
-    // Desenho dos Elementos com Efeitos Visuais Glow (Neon)
-    function drawPaddle() {
-        ctx.save();
-        ctx.shadowBlur = 15;
-Use o código com cuidado.
-ctx.shadowColor = paddle.glow;
-ctx.fillStyle = paddle.color;
-ctx.beginPath();
-ctx.roundRect(paddle.x, paddle.y, paddle.width, paddle.height, 8);
-ctx.fill();
-ctx.restore();
-}
-function drawBall() {
-ctx.save();
-ctx.shadowBlur = 10;
-ctx.shadowColor = ball.glow;
-ctx.fillStyle = ball.color;
-ctx.beginPath();
-ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-ctx.fill();
-ctx.restore();
-}
-function drawBricks() {
-for (let c = 0; c < brickConfig.columnCount; c++) {
-for (let r = 0; r < brickConfig.rowCount; r++) {
-if (bricks[c][r].status === 1) {
-const brickX = c * (brickConfig.width + brickConfig.padding) + brickConfig.offsetLeft;
-const brickY = r * (brickConfig.height + brickConfig.padding) + brickConfig.offsetTop;
-bricks[c][r].x = brickX;
-bricks[c][r].y = brickY;
-ctx.save();
-ctx.shadowBlur = 8;
-ctx.shadowColor = bricks[c][r].color;
-ctx.fillStyle = bricks[c][r].color;
-ctx.beginPath();
-ctx.roundRect(brickX, brickY, brickConfig.width, brickConfig.height, 4);
-ctx.fill();
-ctx.restore();
-}
-}
-}
-}
-// Loop Principal do Jogo
-function moveElements() {
-// Mover Raquete por teclado
-paddle.x += paddle.dx;
-if (paddle.x < 0) paddle.x = 0;
-if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
-// Mover Bola
-ball.x += ball.dx;
-ball.y += ball.dy;
-// Colisão com as Paredes Laterais
-if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
-ball.dx = -ball.dx;
-}
-// Colisão com o Teto
-if (ball.y + ball.dy < ball.radius) {
-ball.dy = -ball.dy;
-}
-// Colisão com a Raquete
-if (ball.y + ball.dy > paddle.y - ball.radius) {
-if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
-// Muda o ângulo da bola dependendo de onde bateu na raquete
-let hitPoint = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
-ball.dx = hitPoint * ball.speed;
-ball.dy = -ball.dy;
-} else if (ball.y > canvas.height) {
-// Queda da Bola (Perda de Vida)
-lives--;
-updateHUD();
-if (lives <= 0) {
-gameRunning = false;
-gameOverScreen.classList.remove("hidden");
-} else {
-resetBallAndPaddle();
-}
-}
-}
-}
-function gameLoop() {
-if (!gameRunning) return;
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-drawBricks();
-drawPaddle();
-drawBall();
-collisionDetection();
-moveElements();
-requestAnimationFrame(gameLoop);
-}
+        document.getElementById("start-btn").addEventListener("click", startGame);
+        document.getElementById("retry-btn").addEventListener("click", restartGame);
+        document.getElementById("victory-btn").addEventListener("click", restartGame);
+
+        function startGame() {
+            startScreen.classList.add("hidden");
+            gameOverScreen.classList.add("hidden");
+            victoryScreen.classList.add("hidden");
+            
+            score = 0;
+            lives = 3;
+            currentLevel = 1;
+            
+            updateHUD();
+            loadLevel();
+            
+            if (!gameRunning) {
+                gameRunning = true;
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function loadLevel() {
+            initBricks();
+            resetBallAndPaddle();
+            ball.speed = 4 + (currentLevel * 1.5);
+            
+            const angle = (Math.random() * 0.6) + 0.2; 
+            ball.dx = ball.speed * (Math.random() > 0.5 ? 1 : -1) * angle;
+            ball.dy = -ball.speed;
+            
+            levelDisplay.textContent = currentLevel;
+        }
+
+        function resetBallAndPaddle() {
+            paddle.x = (canvas.width - paddle.width) / 2;
+            ball.x = canvas.width / 2;
+            ball.y = paddle.y - 20;
+            ball.dy = -ball.speed;
+            ball.dx = (Math.random() > 0.5 ? 3 : -3);
+        }
+
+        function updateHUD() {
+            scoreDisplay.textContent = score;
