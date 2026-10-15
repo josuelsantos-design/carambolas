@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo da Cobrinha - GitHub</title>
+  <title>Jogo da Cobrinha - Moderno</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,38 +11,47 @@
       padding: 0;
     }
     body {
-      background-color: #0d1117;
-      color: #c9d1d9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0b0f19;
+      color: #f0f6fc;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       overflow: hidden;
     }
     h1 {
-      margin-bottom: 10px;
-      font-size: 1.8rem;
-      color: #58a6ff;
+      margin-bottom: 8px;
+      font-size: 2rem;
+      background: linear-gradient(45deg, #2ea043, #58a6ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
     }
     #score-board {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       margin-bottom: 15px;
       display: flex;
-      gap: 20px;
+      gap: 25px;
+      background: rgba(22, 27, 34, 0.8);
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid #30363d;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
     .high-score-container {
-      color: #ffd700; /* Dourado para o Recorde */
+      color: #ffd700;
+      font-weight: bold;
     }
     .canvas-container {
       position: relative;
     }
     canvas {
-      background-color: #161b22;
-      border: 2px solid #263241;
-      border-radius: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      background-color: #121824;
+      border: 2px solid #30363d;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(46, 160, 67, 0.15);
       display: block;
     }
     #start-message {
@@ -50,38 +59,37 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background-color: rgba(22, 27, 34, 0.9);
+      background-color: rgba(13, 17, 23, 0.92);
       color: #58a6ff;
-      padding: 15px 20px;
+      padding: 16px 24px;
       border: 1px solid #30363d;
-      border-radius: 6px;
-      font-size: 1.1rem;
+      border-radius: 8px;
+      font-size: 1rem;
       font-weight: bold;
       text-align: center;
       pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     }
     .instructions {
       margin-top: 15px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #8b949e;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-
   <h1>🐍 Jogo da Cobrinha</h1>
   <div id="score-board">
     <div>Pontuação: <span id="score">0</span></div>
     <div class="high-score-container">🏆 Recorde: <span id="high-score">0</span></div>
   </div>
-  
   <div class="canvas-container">
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="start-message">Pressione qualquer seta ou W, A, S, D para iniciar</div>
   </div>
-  
   <div class="instructions">
-    Use as **setas do teclado** ou as teclas **W, A, S, D** para jogar.
+    Use as <b>setas do teclado</b> ou as teclas <b>W, A, S, D</b> para jogar.
   </div>
 
   <script>
@@ -105,65 +113,71 @@
     let changingDirection = false;
     let gameStarted = false;
 
-    // Carrega o recorde salvo anteriormente (se existir)
     let highScore = localStorage.getItem("snakeHighScore") || 0;
     highScoreElement.innerText = highScore;
 
-    // Desenha o estado inicial parado na tela
     clearCanvas();
     drawFood();
     drawSnake();
 
     function main() {
       if (hasGameEnded()) {
-        // Verifica e atualiza o recorde final antes de reiniciar
         checkHighScore();
         alert(`Game Over! Sua pontuação foi: ${score}`);
         document.location.reload();
         return;
       }
-
       changingDirection = false;
       dx = nextDx;
       dy = nextDy;
-
       clearCanvas();
       drawFood();
       moveSnake();
       drawSnake();
-
       gameInterval = setTimeout(main, 100);
     }
 
     function clearCanvas() {
-      ctx.fillStyle = "#161b22";
+      ctx.fillStyle = "#121824";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Desenha grade de fundo sutil
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < tileCount; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * gridSize, 0);
+        ctx.lineTo(i * gridSize, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i * gridSize);
+        ctx.lineTo(canvas.width, i * gridSize);
+        ctx.stroke();
+      }
     }
 
     function drawSnake() {
       snake.forEach((part, index) => {
-        ctx.fillStyle = index === 0 ? "#238636" : "#2ea043"; // Verde estilo GitHub
-        ctx.strokeStyle = "#161b22";
-        ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
-        ctx.strokeRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
+        const isHead = index === 0;
+        ctx.fillStyle = isHead ? "#3fb950" : "#238636";
+        ctx.beginPath();
+        // Arredonda os blocos da cobrinha para um visual mais orgânico
+        ctx.roundRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, gridSize - 2, isHead ? 6 : 4);
+        ctx.fill();
       });
     }
 
     function moveSnake() {
       const head = { x: snake[0].x + dx, y: snake[0].y + dy };
       snake.unshift(head);
-
       const hasEatenFood = head.x === food.x && head.y === food.y;
       if (hasEatenFood) {
         score += 10;
         scoreElement.innerText = score;
-        
-        // Atualiza o recorde em tempo real se o jogador superar a marca atual
         if (score > highScore) {
           highScore = score;
           highScoreElement.innerText = highScore;
         }
-        
         generateFood();
       } else {
         snake.pop();
@@ -173,33 +187,29 @@
     function generateFood() {
       food.x = Math.floor(Math.random() * tileCount);
       food.y = Math.floor(Math.random() * tileCount);
-
       snake.forEach(part => {
-        const hasEaten = part.x === food.x && part.y === food.y;
-        if (hasEaten) generateFood();
+        if (part.x === food.x && part.y === food.y) generateFood();
       });
     }
 
     function drawFood() {
-      ctx.fillStyle = "#f85149"; // Vermelho
-      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+      const cx = (food.x * gridSize) + (gridSize / 2);
+      const cy = (food.y * gridSize) + (gridSize / 2);
+      ctx.fillStyle = "#ff7b72";
+      ctx.beginPath();
+      ctx.arc(cx, cy, gridSize / 2 - 2, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     function hasGameEnded() {
       for (let i = 4; i < snake.length; i++) {
         if (snake[i].x === snake[0].x && snake[i].y === snake[0].y) return true;
       }
-
-      const hitLeftWall = snake[0].x < 0;
-      const hitRightWall = snake[0].x >= tileCount;
-      const hitTopWall = snake[0].y < 0;
-      const hitBottomWall = snake[0].y >= tileCount;
-
-      return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
+      return snake[0].x < 0 || snake[0].x >= tileCount || snake[0].y < 0 || snake[0].y >= tileCount;
     }
 
     function checkHighScore() {
-      if (score > localStorage.getItem("snakeHighScore")) {
+      if (score > (localStorage.getItem("snakeHighScore") || 0)) {
         localStorage.setItem("snakeHighScore", score);
       }
     }
@@ -213,17 +223,14 @@
       const DOWN_KEY = 40;
 
       if (changingDirection) return;
-      changingDirection = true;
 
       const keyPressed = event.keyCode;
       const key = event.key.toLowerCase();
-
       const goingUp = dy === -1;
       const goingDown = dy === 1;
       const goingRight = dx === 1;
       const goingLeft = dx === -1;
 
-      // Se o jogo ainda não começou, inicia ao apertar um botão válido
       if (!gameStarted) {
         const validKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'];
         if (validKeys.includes(key) || [LEFT_KEY, RIGHT_KEY, UP_KEY, DOWN_KEY].includes(keyPressed)) {
@@ -232,6 +239,8 @@
           main();
         }
       }
+
+      changingDirection = true;
 
       if ((keyPressed === LEFT_KEY || key === 'a') && !goingRight) {
         nextDx = -1;
@@ -253,3 +262,4 @@
   </script>
 </body>
 </html>
+
