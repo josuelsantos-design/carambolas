@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo da Cobrinha - Com Tela Inicial</title>
+  <title>Jogo da Cobrinha - Estilo Google Snake</title>
   <style>
     * {
       box-sizing: border-box;
@@ -24,7 +24,7 @@
     h1 {
       margin-bottom: 8px;
       font-size: 2rem;
-      background: linear-gradient(45deg, #2ea043, #58a6ff);
+      background: linear-gradient(45deg, #4d7fff, #58a6ff);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       letter-spacing: 1px;
@@ -48,10 +48,10 @@
       position: relative;
     }
     canvas {
-      background-color: #121824;
-      border: 2px solid #30363d;
+      background-color: #a2d149;
+      border: 4px solid #30363d;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(46, 160, 67, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(77, 127, 255, 0.15);
       display: block;
     }
     .instructions {
@@ -63,7 +63,7 @@
   </style>
 </head>
 <body>
-  <h1>🐍 Jogo da Cobrinha</h1>
+  <h1>🍏 Jogo da Cobrinha</h1>
   <div id="score-board">
     <div>Pontuação: <span id="score">0</span></div>
     <div class="high-score-container">🏆 Recorde: <span id="high-score">0</span></div>
@@ -86,20 +86,24 @@
 
     let snake, food, dx, dy, nextDx, nextDy, score, gameInterval;
     let changingDirection = false;
-    let gameState = "START"; // Estados possíveis: START, PLAYING, GAME_OVER
+    let gameState = "START"; 
 
     let highScore = localStorage.getItem("snakeHighScore") || 0;
     highScoreElement.innerText = highScore;
 
-    // Inicializa ou resgata o estado do menu inicial
     showStartScreen();
 
     function initGame() {
-      snake = [{ x: 10, y: 10 }];
-      food = { x: 15, y: 15 };
-      dx = 0;
+      // Inicia com 3 segmentos para dar o efeito visual fluido de curva igual ao da foto
+      snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+      ];
+      food = { x: 15, y: 10 };
+      dx = 1;
       dy = 0;
-      nextDx = 0;
+      nextDx = 1;
       nextDy = 0;
       score = 0;
       scoreElement.innerText = score;
@@ -125,60 +129,51 @@
       moveSnake();
       drawSnake();
       
-      gameInterval = setTimeout(main, 100);
+      gameInterval = setTimeout(main, 110);
     }
 
     function clearCanvas() {
-      ctx.fillStyle = "#121824";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Desenha grade de fundo sutil
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
-      ctx.lineWidth = 1;
-      for (let i = 0; i < tileCount; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * gridSize, 0);
-        ctx.lineTo(i * gridSize, canvas.height);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i * gridSize);
-        ctx.lineTo(canvas.width, i * gridSize);
-        ctx.stroke();
+      // Desenha o padrão xadrez do fundo (alternando verde claro e escuro)
+      for (let r = 0; r < tileCount; r++) {
+        for (let c = 0; c < tileCount; c++) {
+          if ((r + c) % 2 === 0) {
+            ctx.fillStyle = "#aad751";
+          } else {
+            ctx.fillStyle = "#a2d149";
+          }
+          ctx.fillRect(c * gridSize, r * gridSize, gridSize, gridSize);
+        }
       }
     }
 
     function showStartScreen() {
       clearCanvas();
+      ctx.fillStyle = "rgba(11, 15, 25, 0.4)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Título interno
-      ctx.fillStyle = "#58a6ff";
-      ctx.font = "bold 24px 'Segoe UI', sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 22px 'Segoe UI', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("PRONTO PARA COMEÇAR?", canvas.width / 2, canvas.height / 2 - 20);
 
-      // Subtítulo descritivo
-      ctx.fillStyle = "#8b949e";
+      ctx.fillStyle = "#e0e0e0";
       ctx.font = "14px 'Segoe UI', sans-serif";
       ctx.fillText("Pressione qualquer comando para iniciar", canvas.width / 2, canvas.height / 2 + 20);
     }
 
     function showGameOverScreen() {
-      // Fundo semi-transparente escuro sobre o último frame do jogo
-      ctx.fillStyle = "rgba(11, 15, 25, 0.85)";
+      ctx.fillStyle = "rgba(11, 15, 25, 0.75)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Texto de Game Over
       ctx.fillStyle = "#ff7b72";
       ctx.font = "bold 32px 'Segoe UI', sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2 - 30);
 
-      // Pontuação alcançada
       ctx.fillStyle = "#f0f6fc";
       ctx.font = "16px 'Segoe UI', sans-serif";
       ctx.fillText(`Você fez ${score} pontos!`, canvas.width / 2, canvas.height / 2 + 10);
 
-      // Instrução para reiniciar
       ctx.fillStyle = "#58a6ff";
       ctx.font = "14px 'Segoe UI', sans-serif";
       ctx.fillText("Pressione qualquer comando para reiniciar", canvas.width / 2, canvas.height / 2 + 50);
@@ -187,10 +182,57 @@
     function drawSnake() {
       snake.forEach((part, index) => {
         const isHead = index === 0;
-        ctx.fillStyle = isHead ? "#3fb950" : "#238636";
+        
+        // Cor azul idêntica à imagem fornecida
+        ctx.fillStyle = "#4d7fff"; 
         ctx.beginPath();
-        ctx.roundRect(part.x * gridSize + 1, part.y * gridSize + 1, gridSize - 2, gridSize - 2, isHead ? 6 : 4);
+        
+        // Retira os espaços internos do corpo para criar a sensação de corpo contínuo
+        ctx.roundRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize, isHead ? 8 : 4);
         ctx.fill();
+
+        // Lógica de renderização dos olhos baseada na direção atual de movimento
+        if (isHead) {
+          ctx.fillStyle = "#ffffff";
+          
+          let eye1X, eye1Y, eye2X, eye2Y;
+          let pupil1X, pupil1Y, pupil2X, pupil2Y;
+          
+          if (dx === 1) { // Andando para a Direita
+            eye1X = part.x * gridSize + 12; eye1Y = part.y * gridSize + 4;
+            eye2X = part.x * gridSize + 12; eye2Y = part.y * gridSize + 12;
+            pupil1X = eye1X + 2; pupil1Y = eye1Y + 2;
+            pupil2X = eye2X + 2; pupil2Y = eye2Y + 2;
+          } else if (dx === -1) { // Andando para a Esquerda
+            eye1X = part.x * gridSize + 4; eye1Y = part.y * gridSize + 4;
+            eye2X = part.x * gridSize + 4; eye2Y = part.y * gridSize + 12;
+            pupil1X = eye1X - 1; pupil1Y = eye1Y + 2;
+            pupil2X = eye2X - 1; pupil2Y = eye2Y + 2;
+          } else if (dy === -1) { // Andando para Cima
+            eye1X = part.x * gridSize + 4; eye1Y = part.y * gridSize + 4;
+            eye2X = part.x * gridSize + 12; eye2Y = part.y * gridSize + 4;
+            pupil1X = eye1X + 2; pupil1Y = eye1Y - 1;
+            pupil2X = eye2X + 2; pupil2Y = eye2Y - 1;
+          } else { // Andando para Baixo
+            eye1X = part.x * gridSize + 4; eye1Y = part.y * gridSize + 12;
+            eye2X = part.x * gridSize + 12; eye2Y = part.y * gridSize + 12;
+            pupil1X = eye1X + 2; pupil1Y = eye1Y + 2;
+            pupil2X = eye2X + 2; pupil2Y = eye2Y + 2;
+          }
+
+          // Esclera (Branco do Olho)
+          ctx.beginPath();
+          ctx.arc(eye1X + 2, eye1Y + 2, 3, 0, Math.PI * 2);
+          ctx.arc(eye2X + 2, eye2Y + 2, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Pupila (Preto do Olho)
+          ctx.fillStyle = "#000000";
+          ctx.beginPath();
+          ctx.arc(pupil1X, pupil1Y, 1.5, 0, Math.PI * 2);
+          ctx.arc(pupil2X, pupil2Y, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       });
     }
 
@@ -214,24 +256,38 @@
     function generateFood() {
       food.x = Math.floor(Math.random() * tileCount);
       food.y = Math.floor(Math.random() * tileCount);
-      snake.forEach(part => {
-        if (part.x === food.x && part.y === food.y) generateFood();
-      });
+      for(let part of snake) {
+        if (part.x === food.x && part.y === food.y) {
+          generateFood();
+          break;
+        }
+      }
     }
 
     function drawFood() {
       const cx = (food.x * gridSize) + (gridSize / 2);
       const cy = (food.y * gridSize) + (gridSize / 2);
-      ctx.fillStyle = "#ff7b72";
+      const r = gridSize / 2 - 2;
+
+      // Desenha o corpo redondo vermelho da Maçã
+      ctx.fillStyle = "#e03e1a";
       ctx.beginPath();
-      ctx.arc(cx, cy, gridSize / 2 - 2, 0, Math.PI * 2);
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
+
+      // Desenha o pequeno caule marrom na parte superior
+      ctx.strokeStyle = "#322319";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - r + 1);
+      ctx.lineTo(cx + 1, cy - r - 3);
+      ctx.stroke();
     }
 
     function hasGameEnded() {
       if (snake.length === 0) return false;
       const head = snake[0];
-      for (let i = 4; i < snake.length; i++) {
+      for (let i = 1; i < snake.length; i++) {
         if (snake[i].x === head.x && snake[i].y === head.y) return true;
       }
       return head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount;
@@ -257,50 +313,5 @@
       const validKeys = ['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'w', 'a', 's', 'd'];
       const isActionKey = validKeys.includes(key) || [LEFT_KEY, RIGHT_KEY, UP_KEY, DOWN_KEY].includes(keyPressed);
 
-      // Gerencia transições de estados de tela (Start ou Game Over) antes de processar movimento
       if ((gameState === "START" || gameState === "GAME_OVER") && isActionKey) {
-        clearTimeout(gameInterval);
-        initGame();
-        gameState = "PLAYING";
-        
-        // Define direção padrão inicial baseada no comando pressionado para evitar travamento parado
-        if (keyPressed === LEFT_KEY || key === 'a') { nextDx = -1; nextDy = 0; }
-        else if (keyPressed === UP_KEY || key === 'w') { nextDx = 0; nextDy = -1; }
-        else if (keyPressed === RIGHT_KEY || key === 'd') { nextDx = 1; nextDy = 0; }
-        else if (keyPressed === DOWN_KEY || key === 's') { nextDx = 0; nextDy = 1; }
-        
-        main();
-        return;
-      }
-
-      if (changingDirection || gameState !== "PLAYING") return;
-
-      const goingUp = dy === -1;
-      const goingDown = dy === 1;
-      const goingRight = dx === 1;
-      const goingLeft = dx === -1;
-
-      changingDirection = true;
-
-      if ((keyPressed === LEFT_KEY || key === 'a') && !goingRight) {
-        nextDx = -1;
-        nextDy = 0;
-      }
-      if ((keyPressed === UP_KEY || key === 'w') && !goingDown) {
-        nextDx = 0;
-        nextDy = -1;
-      }
-      if ((keyPressed === RIGHT_KEY || key === 'd') && !goingLeft) {
-        nextDx = 1;
-        nextDy = 0;
-      }
-      if ((keyPressed === DOWN_KEY || key === 's') && !goingUp) {
-        nextDx = 0;
-        nextDy = 1;
-      }
-    }
-  </script>
-</body>
-</html>
-
 
