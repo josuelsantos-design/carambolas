@@ -2,295 +2,64 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cobrinha - GitHub</title>
-<style>
-  :root {
-    --bg: #ffffff; --panel: #f6f8fa; --border: #d0d7de; --text: #1f2328; --muted: #59636e;
-    --l0: #ebedf0; --l1: #9be9a8; --l2: #40c463; --l3: #30a14e; --l4: #216e39;
-    --head: #116329; --tail: #40c463; --trail: #30a14e;
-    --danger: #cf222e; --btn: #1f883d; --btn-hover: #1a7f37; --overlay: rgba(255,255,255,.82);
-    box-sizing: border-box;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e;
-      --l0: #161b22; --l1: #0e4429; --l2: #006d32; --l3: #26a641; --l4: #39d353;
-      --head: #56d364; --tail: #0e6b2f; --trail: #39d353;
-      --danger: #f85149; --btn: #238636; --btn-hover: #2ea043; --overlay: rgba(13,17,23,.82);
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e;
-    --l0: #161b22; --l1: #0e4429; --l2: #006d32; --l3: #26a641; --l4: #39d353;
-    --head: #56d364; --tail: #0e6b2f; --trail: #39d353;
-    --danger: #f85149; --btn: #238636; --btn-hover: #2ea043; --overlay: rgba(13,17,23,.82);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 16px; padding: 16px; overflow: auto;
-  }
-  .card {
-    width: min(94vw, 520px);
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px;
-    display: flex; flex-direction: column; gap: 14px;
-  }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  h1 { font-size: 1.35rem; font-weight: 600; }
-  .stats { display: flex; gap: 8px; }
-  .stat {
-    border: 1px solid var(--border); background: var(--bg); border-radius: 6px;
-    padding: 4px 12px; font-size: .85rem; color: var(--muted);
-  }
-  .stat b { color: var(--text); font-size: 1rem; font-variant-numeric: tabular-nums; margin-left: 6px; }
-  .stat.best b { color: var(--l3); }
-  .stat.pop { animation: pop .25s ease-out; }
-  @keyframes pop { 40% { transform: scale(1.12); } }
-
-  .board { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px; }
-  canvas { display: block; width: 100%; aspect-ratio: 1; touch-action: none; }
-  .overlay {
-    position: absolute; inset: 0; border-radius: 8px; background: var(--overlay);
-    backdrop-filter: blur(2px);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px; padding: 24px; text-align: center; touch-action: none;
-  }
-  .overlay.hidden { display: none; }
-  .overlay h2 { font-size: 1.5rem; font-weight: 600; }
-  .overlay p { color: var(--muted); max-width: 32ch; line-height: 1.45; }
-  .overlay p.new { color: var(--l3); font-weight: 600; }
-  button {
-    margin-top: 8px; font: inherit; font-weight: 600;
-    background: var(--btn); color: #fff;
-    border: 1px solid rgba(31,35,40,.15); border-radius: 6px;
-    padding: 8px 20px; cursor: pointer;
-  }
-  button:hover { background: var(--btn-hover); }
-  button:focus-visible { outline: 2px solid var(--l4); outline-offset: 2px; }
-
-  .legend { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: .75rem; color: var(--muted); }
-  .legend i { width: 11px; height: 11px; border-radius: 2px; display: block; }
-  .legend span { margin: 0 4px; }
-  .hint { font-size: .85rem; color: var(--muted); line-height: 1.8; text-align: center; max-width: 46ch; }
-  kbd {
-    font: inherit; font-size: .78rem; background: var(--panel); color: var(--text);
-    border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px;
-  }
-  @media (prefers-reduced-motion: reduce) { .stat.pop { animation: none; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Jogo da cobrinha clássico feito com HTML, CSS e JavaScript puro. Jogue no navegador, no computador ou no celular.">
+  <meta name="theme-color" content="#2b3345">
+  <title>Cobrinha</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main class="aparelho">
+    <h1 class="titulo">Cobrinha</h1>
 
-<div class="card">
-  <header>
-    <h1>🐍 Jogo da Cobrinha</h1>
-    <div class="stats">
-      <div class="stat" id="s-score">Pontos<b id="score">0</b></div>
-      <div class="stat best">Recorde<b id="best">0</b></div>
+    <section class="painel" aria-label="Placar">
+      <div class="medidor">
+        <span class="medidor__rotulo">Pontos</span>
+        <output id="pontos" class="medidor__valor" aria-live="off">0</output>
+      </div>
+      <div class="medidor">
+        <span class="medidor__rotulo">Recorde</span>
+        <output id="recorde" class="medidor__valor">0</output>
+      </div>
+      <div class="medidor">
+        <span class="medidor__rotulo">Nível</span>
+        <output id="nivel" class="medidor__valor">1</output>
+      </div>
+    </section>
+
+    <div class="tela-moldura">
+      <canvas id="tela" aria-label="Tabuleiro do jogo da cobrinha" role="img"></canvas>
+      <div id="sobreposicao" class="sobreposicao" role="dialog" aria-live="polite">
+        <h2 id="sobreposicao-titulo" class="sobreposicao__titulo">Cobrinha</h2>
+        <p id="sobreposicao-texto" class="sobreposicao__texto">Coma as frutas e não bata em nada.</p>
+        <button id="botao-principal" class="botao botao--principal" type="button">Jogar</button>
+      </div>
     </div>
-  </header>
 
-  <div class="board">
-    <canvas id="board" aria-label="Tabuleiro do jogo da cobrinha"></canvas>
-    <div class="overlay" id="overlay">
-      <h2 id="ov-title">Pronto?</h2>
-      <p id="ov-text"></p>
-      <button id="ov-btn" type="button">Jogar</button>
-    </div>
-  </div>
+    <section class="opcoes" aria-label="Opções">
+      <label class="campo">
+        <span>Modo</span>
+        <select id="modo">
+          <option value="paredes">Com paredes</option>
+          <option value="atravessar">Atravessar bordas</option>
+        </select>
+      </label>
+      <button id="botao-som" class="botao" type="button" aria-pressed="true">Som: ligado</button>
+      <button id="botao-pausa" class="botao" type="button">Pausar</button>
+    </section>
 
-  <div class="legend">
-    Rastro menos
-    <i style="background:var(--l0)"></i><i style="background:var(--l1)"></i><i style="background:var(--l2)"></i><i style="background:var(--l3)"></i><i style="background:var(--l4)"></i>
-    <span>mais</span>
-  </div>
-</div>
+    <section class="direcional" aria-label="Controles na tela">
+      <button class="seta seta--cima" type="button" data-dir="cima" aria-label="Cima">▲</button>
+      <button class="seta seta--esquerda" type="button" data-dir="esquerda" aria-label="Esquerda">◀</button>
+      <button class="seta seta--direita" type="button" data-dir="direita" aria-label="Direita">▶</button>
+      <button class="seta seta--baixo" type="button" data-dir="baixo" aria-label="Baixo">▼</button>
+    </section>
 
-<p class="hint">Mova com <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> ou <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. <kbd>Espaço</kbd> pausa. No celular, deslize sobre o tabuleiro.</p>
+    <p class="dica">Setas ou WASD para mover. Espaço pausa, Enter reinicia, M liga ou desliga o som. No celular, deslize sobre o tabuleiro.</p>
+  </main>
 
-<script>
-(function () {
-  const N = 20, C = 24, G = 3, SIZE = N * C;
-  const $ = (id) => document.getElementById(id);
-  const cv = $("board"), ctx = cv.getContext("2d");
-  const scoreEl = $("score"), bestEl = $("best"), scoreBox = $("s-score");
-  const overlay = $("overlay"), ovTitle = $("ov-title"), ovText = $("ov-text"), ovBtn = $("ov-btn");
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  cv.width = cv.height = SIZE * dpr;
-
-  let T = {};
-  function readTheme() {
-    const cs = getComputedStyle(document.documentElement);
-    ["l0", "head", "tail", "trail", "danger", "bg"].forEach((k) => (T[k] = cs.getPropertyValue("--" + k).trim()));
-  }
-  readTheme();
-  setInterval(readTheme, 500);
-
-  function mix(a, b, t) {
-    const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-    const A = p(a), B = p(b);
-    return "rgb(" + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",") + ")";
-  }
-  function cell(x, y, inset, fill, r) {
-    const s = C - G - inset * 2;
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(x * C + G / 2 + inset, y * C + G / 2 + inset, s, s, r);
-    else ctx.rect(x * C + G / 2 + inset, y * C + G / 2 + inset, s, s);
-    ctx.fillStyle = fill; ctx.fill();
-  }
-
-  let best = 0;
-  try { best = parseInt(localStorage.getItem("snake-best"), 10) || 0; } catch (e) {}
-  bestEl.textContent = best;
-
-  let snake, dir, queue, food, score, state, acc, interval, heat, shake, dead, newBest, now = 0;
-
-  function reset() {
-    snake = [{ x: 9, y: 10 }, { x: 8, y: 10 }, { x: 7, y: 10 }];
-    dir = { x: 1, y: 0 }; queue = [];
-    score = 0; acc = 0; interval = 120; shake = 0; dead = false; newBest = false;
-    heat = Array.from({ length: N }, () => new Array(N).fill(0));
-    scoreEl.textContent = 0;
-    placeFood();
-    state = "ready";
-    showOverlay("Pronto?", "Coma os quadrados vermelhos. Paredes e o próprio corpo encerram a partida.", "Jogar");
-  }
-
-  function placeFood() {
-    const free = [];
-    for (let x = 0; x < N; x++) for (let y = 0; y < N; y++)
-      if (!snake.some((p) => p.x === x && p.y === y)) free.push({ x, y });
-    food = free[Math.floor(Math.random() * free.length)] || { x: 0, y: 0 };
-  }
-
-  function showOverlay(title, text, btn, hl) {
-    ovTitle.textContent = title; ovText.textContent = text;
-    ovText.className = hl ? "new" : ""; ovBtn.textContent = btn;
-    overlay.classList.remove("hidden");
-    ovBtn.focus({ preventScroll: true });
-  }
-  function start() { state = "running"; overlay.classList.add("hidden"); }
-  function pause() { if (state === "running") { state = "paused"; showOverlay("Pausado", "O jogo espera por você.", "Continuar"); } }
-
-  function end() {
-    state = "over"; dead = true;
-    if (!reduce) shake = 1;
-    if (score > best) { best = score; newBest = true; try { localStorage.setItem("snake-best", best); } catch (e) {} }
-    showOverlay("Fim de jogo", newBest ? "Novo recorde: " + score + " pontos!" : "Você fez " + score + " pontos.", "Jogar de novo", newBest);
-  }
-
-  function tick() {
-    if (queue.length) dir = queue.shift();
-    const h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-    const eat = h.x === food.x && h.y === food.y;
-    const body = eat ? snake : snake.slice(0, -1);
-    if (h.x < 0 || h.y < 0 || h.x >= N || h.y >= N || body.some((p) => p.x === h.x && p.y === h.y)) { end(); return; }
-    snake.unshift(h);
-    if (eat) {
-      score += 10; scoreEl.textContent = score;
-      if (score > best) bestEl.textContent = score;
-      if (!reduce) { scoreBox.classList.remove("pop"); void scoreBox.offsetWidth; scoreBox.classList.add("pop"); }
-      placeFood();
-      interval = Math.max(65, 120 - Math.floor(score / 50) * 5);
-    } else {
-      const t = snake.pop();
-      heat[t.y][t.x] = 1;
-    }
-  }
-
-  function setDir(d) {
-    if (state === "over") return;
-    const last = queue.length ? queue[queue.length - 1] : dir;
-    if (d.x === -last.x && d.y === -last.y) return;
-    if (d.x === last.x && d.y === last.y) { if (state !== "running") start(); return; }
-    if (queue.length < 2) queue.push(d);
-    if (state !== "running") start();
-  }
-
-  const KEYS = {
-    ArrowUp: [0, -1], w: [0, -1], W: [0, -1], ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
-    ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0], ArrowRight: [1, 0], d: [1, 0], D: [1, 0]
-  };
-  window.addEventListener("keydown", (e) => {
-    if (KEYS[e.key]) { e.preventDefault(); setDir({ x: KEYS[e.key][0], y: KEYS[e.key][1] }); return; }
-    if (e.key === " " || e.key === "p" || e.key === "P") {
-      if (e.target === ovBtn && state !== "running") return;
-      e.preventDefault();
-      if (state === "running") pause(); else if (state === "paused") start();
-    }
-  });
-  ovBtn.addEventListener("click", () => { if (state === "over") reset(); start(); });
-
-  let touch = null;
-  cv.addEventListener("touchstart", (e) => { touch = e.touches[0]; }, { passive: true });
-  cv.addEventListener("touchend", (e) => {
-    if (!touch) return;
-    const t = e.changedTouches[0], dx = t.clientX - touch.clientX, dy = t.clientY - touch.clientY;
-    touch = null;
-    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
-    if (Math.abs(dx) > Math.abs(dy)) setDir({ x: dx > 0 ? 1 : -1, y: 0 });
-    else setDir({ x: 0, y: dy > 0 ? 1 : -1 });
-  }, { passive: true });
-  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
-
-  let last = performance.now();
-  function frame(ts) {
-    const dt = Math.min(ts - last, 100); last = ts; now = ts;
-    if (state === "running") {
-      acc += dt;
-      while (acc >= interval && state === "running") { acc -= interval; tick(); }
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, SIZE, SIZE);
-    ctx.save();
-    if (shake > 0) {
-      ctx.translate((Math.random() - 0.5) * 7 * shake, (Math.random() - 0.5) * 7 * shake);
-      shake = Math.max(0, shake - dt / 350);
-    }
-    for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) {
-      cell(x, y, 0, T.l0, 4);
-      const hv = heat[y][x];
-      if (hv > 0.02) {
-        ctx.globalAlpha = hv * 0.75; cell(x, y, 0, T.trail, 4); ctx.globalAlpha = 1;
-        heat[y][x] = Math.max(0, hv - dt / 2200);
-      }
-    }
-    const pulse = reduce ? 0 : Math.sin(now / 200) * 1.2;
-    ctx.shadowColor = T.danger; ctx.shadowBlur = 12;
-    cell(food.x, food.y, 3 + pulse, T.danger, 4);
-    ctx.shadowBlur = 0;
-
-    const L = snake.length;
-    for (let i = L - 1; i >= 0; i--) {
-      const p = snake[i];
-      const col = dead ? mix("#6e7681", "#8b949e", i / L) : mix(T.head, T.tail, L > 1 ? i / (L - 1) : 0);
-      if (i === 0 && !dead) { ctx.shadowColor = T.head; ctx.shadowBlur = 14; }
-      cell(p.x, p.y, i === 0 ? 0 : 1, col, 4);
-      ctx.shadowBlur = 0;
-    }
-    const h = snake[0], cx = (h.x + 0.5) * C, cy = (h.y + 0.5) * C;
-    ctx.fillStyle = T.bg;
-    for (const s of [-1, 1]) {
-      ctx.beginPath();
-      ctx.arc(cx + dir.x * 4 - dir.y * s * 5, cy + dir.y * 4 + dir.x * s * 5, 2.2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    requestAnimationFrame(frame);
-  }
-
-  reset();
-  requestAnimationFrame(frame);
-})();
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
