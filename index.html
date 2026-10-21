@@ -1,65 +1,789 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="Jogo da cobrinha clássico feito com HTML, CSS e JavaScript puro. Jogue no navegador, no computador ou no celular.">
-  <meta name="theme-color" content="#2b3345">
-  <title>Cobrinha</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Comecoco: um jogo de labirinto com fantasmas, feito em HTML, CSS e JavaScript puro.">
+<title>Comecoco</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23ffd23f'/><path d='M50 50 L100 24 L100 76 Z' fill='%23161340'/></svg>">
+<style>
+  :root {
+    --pagina: #0d0b26;
+    --cartao: #17143d;
+    --ficha: #221e55;
+    --tinta: #f4efff;
+    --tinta-suave: #9a95c9;
+    --amarelo: #ffd23f;
+    --rosa: #ff9ed8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom));
+    background: var(--pagina);
+    color: var(--tinta);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cartao {
+    width: min(100%, 560px);
+    padding: 18px;
+    background: var(--cartao);
+    border-radius: 28px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 28px 60px -16px rgba(0, 0, 0, .7);
+  }
+
+  .topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  .placar { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .ficha {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: var(--ficha);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ficha small {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--tinta-suave);
+  }
+
+  .vidas { display: flex; gap: 4px; min-width: 14px; }
+  .vidas i {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--amarelo);
+    clip-path: polygon(0 0, 100% 0, 100% 30%, 50% 50%, 100% 70%, 100% 100%, 0 100%);
+  }
+
+  .tabuleiro {
+    position: relative;
+    width: min(100%, calc((100dvh - 190px) * 19 / 21));
+    min-width: 240px;
+    margin: 0 auto;
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 19 / 21;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .aviso {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 8px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(13, 11, 38, .74);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+  }
+
+  .aviso[hidden] { display: none; }
+
+  .aviso h2 {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+  }
+
+  .aviso p {
+    margin: 0 0 8px;
+    max-width: 30ch;
+    color: var(--tinta-suave);
+    line-height: 1.4;
+  }
+
+  button {
+    font: inherit;
+    font-weight: 800;
+    padding: 12px 32px;
+    color: #2a2100;
+    background: var(--amarelo);
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px -4px rgba(255, 210, 63, .55);
+    transition: transform .12s;
+  }
+
+  button:hover { transform: translateY(-1px); }
+  button:active { transform: translateY(1px); }
+
+  :focus-visible { outline: 3px solid var(--rosa); outline-offset: 3px; }
+
+  .dica {
+    margin: 12px 0 0;
+    text-align: center;
+    font-size: .82rem;
+    color: var(--tinta-suave);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button { transition: none; }
+  }
+</style>
 </head>
 <body>
-  <main class="aparelho">
-    <h1 class="titulo">Cobrinha</h1>
+  <main class="cartao">
+    <header class="topo">
+      <h1>Comecoco</h1>
+      <div class="placar">
+        <div class="ficha"><small>Pontos</small><span id="pontos">0</span></div>
+        <div class="ficha"><small>Recorde</small><span id="melhor">0</span></div>
+        <div class="ficha"><small>Nível</small><span id="nivel">1</span></div>
+        <div class="ficha" aria-label="Vidas"><div class="vidas" id="vidas"></div></div>
+      </div>
+    </header>
 
-    <section class="painel" aria-label="Placar">
-      <div class="medidor">
-        <span class="medidor__rotulo">Pontos</span>
-        <output id="pontos" class="medidor__valor" aria-live="off">0</output>
-      </div>
-      <div class="medidor">
-        <span class="medidor__rotulo">Recorde</span>
-        <output id="recorde" class="medidor__valor">0</output>
-      </div>
-      <div class="medidor">
-        <span class="medidor__rotulo">Nível</span>
-        <output id="nivel" class="medidor__valor">1</output>
-      </div>
-    </section>
-
-    <div class="tela-moldura">
-      <canvas id="tela" aria-label="Tabuleiro do jogo da cobrinha" role="img"></canvas>
-      <div id="sobreposicao" class="sobreposicao" role="dialog" aria-live="polite">
-        <h2 id="sobreposicao-titulo" class="sobreposicao__titulo">Cobrinha</h2>
-        <p id="sobreposicao-texto" class="sobreposicao__texto">Coma as frutas e não bata em nada.</p>
-        <button id="botao-principal" class="botao botao--principal" type="button">Jogar</button>
+    <div class="tabuleiro">
+      <canvas id="tela" role="img" aria-label="Labirinto do jogo"></canvas>
+      <div id="aviso" class="aviso">
+        <h2 id="aviso-titulo">Comecoco</h2>
+        <p id="aviso-texto">Coma todos os pontos do labirinto e fuja dos fantasmas.</p>
+        <button id="botao" type="button">Jogar</button>
       </div>
     </div>
 
-    <section class="opcoes" aria-label="Opções">
-      <label class="campo">
-        <span>Modo</span>
-        <select id="modo">
-          <option value="paredes">Com paredes</option>
-          <option value="atravessar">Atravessar bordas</option>
-        </select>
-      </label>
-      <button id="botao-som" class="botao" type="button" aria-pressed="true">Som: ligado</button>
-      <button id="botao-pausa" class="botao" type="button">Pausar</button>
-    </section>
-
-    <section class="direcional" aria-label="Controles na tela">
-      <button class="seta seta--cima" type="button" data-dir="cima" aria-label="Cima">▲</button>
-      <button class="seta seta--esquerda" type="button" data-dir="esquerda" aria-label="Esquerda">◀</button>
-      <button class="seta seta--direita" type="button" data-dir="direita" aria-label="Direita">▶</button>
-      <button class="seta seta--baixo" type="button" data-dir="baixo" aria-label="Baixo">▼</button>
-    </section>
-
-    <p class="dica">Setas ou WASD para mover. Espaço pausa, Enter reinicia, M liga ou desliga o som. No celular, deslize sobre o tabuleiro.</p>
+    <p class="dica">Setas ou WASD para mover. Espaço pausa. No celular, deslize sobre o labirinto.</p>
   </main>
 
-  <script src="script.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  /* ---------- Labirinto ----------
+     # parede   . ponto   o pastilha de poder   - porta da casa dos fantasmas
+     P início do jogador   G casa dos fantasmas   espaço = caminho vazio */
+  const MAPA = [
+    '###################',
+    '#........#........#',
+    '#o##.###.#.###.##o#',
+    '#.................#',
+    '#.##.#.#####.#.##.#',
+    '#....#...#...#....#',
+    '####.### # ###.####',
+    '   #.#       #.#   ',
+    '####.# ##-## #.####',
+    '    .  #GGG#  .    ',
+    '####.# ##### #.####',
+    '   #.#       #.#   ',
+    '####.# ##### #.####',
+    '#........#........#',
+    '#.##.###.#.###.##.#',
+    '#o.#.....P.....#.o#',
+    '##.#.#.#####.#.#.##',
+    '#....#...#...#....#',
+    '#.######.#.######.#',
+    '#.................#',
+    '###################',
+  ];
+  const COLS = 19, ROWS = 21;
+  const SAIDA = { x: 9, y: 7 }, CASA = { x: 9, y: 9 }, TUNEL_Y = 9;
+
+  const D = {
+    cima: { x: 0, y: -1 }, esquerda: { x: -1, y: 0 },
+    baixo: { x: 0, y: 1 }, direita: { x: 1, y: 0 },
+  };
+  const ORDEM = [D.cima, D.esquerda, D.baixo, D.direita];
+
+  /* ---------- Elementos ---------- */
+  const tela = document.getElementById('tela');
+  const ctx = tela.getContext('2d');
+  const elPontos = document.getElementById('pontos');
+  const elMelhor = document.getElementById('melhor');
+  const elNivel = document.getElementById('nivel');
+  const elVidas = document.getElementById('vidas');
+  const aviso = document.getElementById('aviso');
+  const avisoTitulo = document.getElementById('aviso-titulo');
+  const avisoTexto = document.getElementById('aviso-texto');
+  const botao = document.getElementById('botao');
+
+  const COR = {
+    fundo: '#14113a', paredeBase: '#2f2d9e', paredeMiolo: '#5755d8',
+    pisca1: '#ffffff', pisca2: '#9a98f5',
+    ponto: '#f6e7c1', pac: '#ffd23f', porta: '#ff9ed8', tinta: '#25236b',
+  };
+
+  /* ---------- Estado ---------- */
+  let grade, restantes, pontos, melhor = 0, vidas, nivel;
+  let estado = 'inicio'; // inicio | pronto | jogando | pausa | morrendo | nivel | fim
+  let tempo = 0, poder = 0, combo = 0, modoT = 0;
+  let pac, fantasmas, popups = [];
+  let u = 24, dpr = 1, ultimo = 0, relogio = 0;
+
+  try { melhor = parseInt(localStorage.getItem('comecoco:melhor'), 10) || 0; } catch (_) {}
+  elMelhor.textContent = melhor;
+
+  /* ---------- Paredes (um único Path2D, em unidades de célula) ---------- */
+  const paredes = new Path2D();
+  const ehParede = (x, y) => y >= 0 && y < ROWS && x >= 0 && x < COLS && MAPA[y][x] === '#';
+  for (let y = 0; y < ROWS; y++) {
+    for (let x = 0; x < COLS; x++) {
+      if (!ehParede(x, y)) continue;
+      const cx = x + .5, cy = y + .5;
+      let ligada = false;
+      if (ehParede(x + 1, y)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + 1, cy); ligada = true; }
+      if (ehParede(x, y + 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx, cy + 1); ligada = true; }
+      if (!ligada && !ehParede(x - 1, y) && !ehParede(x, y - 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + .001, cy); }
+    }
+  }
+
+  /* ---------- Mapa e entidades ---------- */
+  let inicioPac = { x: 9, y: 15 };
+
+  function carregarMapa() {
+    grade = MAPA.map((l) => l.split(''));
+    restantes = 0;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const c = grade[y][x];
+        if (c === 'P') { inicioPac = { x, y }; grade[y][x] = ' '; }
+        else if (c === 'G') grade[y][x] = ' ';
+        else if (c === '.' || c === 'o') restantes++;
+      }
+    }
+  }
+
+  const nova = (x, y) => ({ fx: x, fy: y, tx: x, ty: y, p: 0, dir: D.esquerda, movendo: false, v: 0 });
+
+  function resetarPosicoes() {
+    pac = { ...nova(inicioPac.x, inicioPac.y), querer: D.esquerda, boca: 0 };
+    const k = Math.max(.4, 1 - .1 * (nivel - 1));
+    const base = [
+      { nome: 'vermelho', cor: '#ff6b6b', x: 9, y: 7, estado: 'normal', liberar: 0, canto: { x: 17, y: -2 } },
+      { nome: 'rosa', cor: '#ff9ed8', x: 9, y: 9, estado: 'casa', liberar: 2 * k, canto: { x: 1, y: -2 } },
+      { nome: 'ciano', cor: '#5ce1e6', x: 8, y: 9, estado: 'casa', liberar: 5 * k, canto: { x: 17, y: 22 } },
+      { nome: 'laranja', cor: '#ffa94d', x: 10, y: 9, estado: 'casa', liberar: 8 * k, canto: { x: 1, y: 22 } },
+    ];
+    fantasmas = base.map((b) => ({ ...nova(b.x, b.y), ...b, x: undefined, y: undefined }));
+    poder = 0; combo = 0; modoT = 0; popups = [];
+  }
+
+  function atualizarPainel() {
+    elPontos.textContent = pontos;
+    elMelhor.textContent = melhor;
+    elNivel.textContent = nivel;
+    elVidas.innerHTML = '<i></i>'.repeat(Math.max(0, vidas));
+  }
+
+  function mostrar(titulo, texto, rotulo) {
+    avisoTitulo.textContent = titulo;
+    avisoTexto.textContent = texto;
+    botao.textContent = rotulo;
+    aviso.hidden = false;
+    botao.focus({ preventScroll: true });
+  }
+
+  function iniciarPartida() {
+    pontos = 0; vidas = 3; nivel = 1;
+    carregarMapa();
+    resetarPosicoes();
+    atualizarPainel();
+    estado = 'pronto';
+    tempo = 1.8;
+    aviso.hidden = true;
+  }
+
+  function proximoNivel() {
+    nivel++;
+    carregarMapa();
+    resetarPosicoes();
+    atualizarPainel();
+    estado = 'pronto';
+    tempo = 1.8;
+  }
+
+  function salvarRecorde() {
+    if (pontos > melhor) {
+      melhor = pontos;
+      try { localStorage.setItem('comecoco:melhor', melhor); } catch (_) {}
+      return true;
+    }
+    return false;
+  }
+
+  function aposMorte() {
+    vidas--;
+    atualizarPainel();
+    if (vidas <= 0) {
+      estado = 'fim';
+      const recorde = salvarRecorde();
+      atualizarPainel();
+      mostrar('Fim de jogo', `Você fez ${pontos} pontos.${recorde ? ' Novo recorde!' : ''}`, 'Jogar de novo');
+    } else {
+      resetarPosicoes();
+      estado = 'pronto';
+      tempo = 1.6;
+    }
+  }
+
+  function pausar() {
+    if (estado !== 'jogando') return;
+    estado = 'pausa';
+    mostrar('Pausado', 'Os fantasmas esperam por você.', 'Continuar');
+  }
+
+  function continuar() {
+    if (estado !== 'pausa') return;
+    estado = 'jogando';
+    aviso.hidden = true;
+  }
+
+  /* ---------- Movimento ---------- */
+  function cell(x, y) {
+    if (y < 0 || y >= ROWS) return '#';
+    if (x < -1 || x > COLS) return '#';
+    if (x < 0 || x >= COLS) return y === TUNEL_Y ? ' ' : '#';
+    return grade[y][x];
+  }
+
+  function livre(x, y, porta) {
+    const c = cell(x, y);
+    if (c === '#') return false;
+    if (c === '-') return porta;
+    return true;
+  }
+
+  function tentar(e, d, porta) {
+    const nx = e.fx + d.x, ny = e.fy + d.y;
+    if (!livre(nx, ny, porta)) return false;
+    e.dir = d; e.tx = nx; e.ty = ny; e.movendo = true;
+    return true;
+  }
+
+  function mover(e, dt, escolher, chegou) {
+    if (!e.movendo) {
+      escolher(e);
+      if (!e.movendo) return;
+    }
+    e.p += e.v * dt;
+    while (e.p >= 1 && e.movendo) {
+      e.p -= 1;
+      e.fx = e.tx; e.fy = e.ty;
+      if (e.fx < 0) e.fx = COLS; else if (e.fx >= COLS) e.fx = -1;
+      if (chegou) chegou(e);
+      escolher(e);
+      if (!e.movendo) e.p = 0;
+    }
+  }
+
+  function inverter(e) {
+    if (!e.movendo) return;
+    if (e.fx < 0 || e.fx >= COLS || e.tx < 0 || e.tx >= COLS) return;
+    [e.fx, e.tx] = [e.tx, e.fx];
+    [e.fy, e.ty] = [e.ty, e.fy];
+    e.p = 1 - e.p;
+    e.dir = { x: -e.dir.x, y: -e.dir.y };
+  }
+
+  const pos = (e) => ({ x: e.fx + (e.tx - e.fx) * e.p, y: e.fy + (e.ty - e.fy) * e.p });
+
+  /* ---------- Jogador ---------- */
+  function escolherPac() {
+    if (tentar(pac, pac.querer, false)) return;
+    if (pac.dir && tentar(pac, pac.dir, false)) return;
+    pac.movendo = false;
+  }
+
+  function chegouPac() {
+    if (pac.fx < 0 || pac.fx >= COLS) return;
+    const c = grade[pac.fy][pac.fx];
+    if (c === '.') {
+      grade[pac.fy][pac.fx] = ' ';
+      restantes--; pontos += 10;
+    } else if (c === 'o') {
+      grade[pac.fy][pac.fx] = ' ';
+      restantes--; pontos += 50;
+      ativarPoder();
+    } else {
+      return;
+    }
+    elPontos.textContent = pontos;
+  }
+
+  function ativarPoder() {
+    poder = Math.max(3, 7 - (nivel - 1) * .5);
+    combo = 0;
+    fantasmas.forEach((g) => {
+      if (g.estado === 'normal') { g.estado = 'assustado'; inverter(g); }
+    });
+  }
+
+  function virar(d) {
+    if (estado === 'inicio' || estado === 'fim') iniciarPartida();
+    if (estado === 'pausa') continuar();
+    if (!pac) return;
+    pac.querer = d;
+    const oposta = pac.dir.x === -d.x && pac.dir.y === -d.y;
+    if (pac.movendo && oposta) inverter(pac);
+  }
+
+  /* ---------- Fantasmas ---------- */
+  function caminho(sx, sy, gx, gy) {
+    if (sx < 0) return D.direita;
+    if (sx >= COLS) return D.esquerda;
+    if (sx === gx && sy === gy) return null;
+    const k = (x, y) => y * COLS + x;
+    const veio = new Map([[k(sx, sy), null]]);
+    const fila = [[sx, sy]];
+    while (fila.length) {
+      const [x, y] = fila.shift();
+      if (x === gx && y === gy) break;
+      for (const d of ORDEM) {
+        const nx = x + d.x, ny = y + d.y;
+        if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) continue;
+        if (grade[ny][nx] === '#') continue;
+        const kk = k(nx, ny);
+        if (veio.has(kk)) continue;
+        veio.set(kk, [x, y, d]);
+        fila.push([nx, ny]);
+      }
+    }
+    if (!veio.has(k(gx, gy))) return null;
+    let atual = [gx, gy], passo = null;
+    for (;;) {
+      const v = veio.get(k(atual[0], atual[1]));
+      if (!v) break;
+      passo = v[2];
+      atual = [v[0], v[1]];
+    }
+    return passo;
+  }
+
+  function alvoDe(g) {
+    if (modoT % 27 < 7) return g.canto; // 7 s dispersando, 20 s perseguindo
+    const px = pac.fx, py = pac.fy, d = pac.dir;
+    if (g.nome === 'vermelho') return { x: px, y: py };
+    if (g.nome === 'rosa') return { x: px + d.x * 4, y: py + d.y * 4 };
+    if (g.nome === 'ciano') {
+      const v = fantasmas[0];
+      const ax = px + d.x * 2, ay = py + d.y * 2;
+      return { x: ax + (ax - v.fx), y: ay + (ay - v.fy) };
+    }
+    const dist = Math.hypot(g.fx - px, g.fy - py);
+    return dist > 8 ? { x: px, y: py } : g.canto;
+  }
+
+  function escolherFantasma(g) {
+    if (g.estado === 'casa') { g.movendo = false; return; }
+    if (g.estado === 'saindo' && g.fx === SAIDA.x && g.fy === SAIDA.y) g.estado = 'normal';
+    if (g.estado === 'olhos' && g.fx === CASA.x && g.fy === CASA.y) g.estado = 'saindo';
+
+    if (g.estado === 'saindo' || g.estado === 'olhos') {
+      const alvo = g.estado === 'saindo' ? SAIDA : CASA;
+      const d = caminho(g.fx, g.fy, alvo.x, alvo.y);
+      if (d && tentar(g, d, true)) return;
+      g.movendo = false;
+      return;
+    }
+
+    const rev = { x: -g.dir.x, y: -g.dir.y };
+    let opcoes = ORDEM.filter((d) => !(d.x === rev.x && d.y === rev.y) && livre(g.fx + d.x, g.fy + d.y, false));
+    if (!opcoes.length) opcoes = ORDEM.filter((d) => livre(g.fx + d.x, g.fy + d.y, false));
+    if (!opcoes.length) { g.movendo = false; return; }
+
+    let escolhida;
+    if (g.estado === 'assustado') {
+      escolhida = opcoes[Math.floor(Math.random() * opcoes.length)];
+    } else {
+      const alvo = alvoDe(g);
+      let menor = Infinity;
+      for (const d of opcoes) {
+        const dist = (g.fx + d.x - alvo.x) ** 2 + (g.fy + d.y - alvo.y) ** 2;
+        if (dist < menor) { menor = dist; escolhida = d; }
+      }
+    }
+    tentar(g, escolhida, false);
+  }
+
+  function velocidadeFantasma(g) {
+    if (g.estado === 'olhos') return 12;
+    if (g.estado === 'assustado') return 3.8;
+    if (g.estado === 'saindo' || g.estado === 'casa') return 4.5;
+    return Math.min(7.2, 6.2 + (nivel - 1) * .2);
+  }
+
+  /* ---------- Atualização ---------- */
+  function atualizar(dt) {
+    if (estado === 'pronto' || estado === 'morrendo' || estado === 'nivel') {
+      tempo -= dt;
+      if (tempo <= 0) {
+        if (estado === 'pronto') estado = 'jogando';
+        else if (estado === 'morrendo') aposMorte();
+        else proximoNivel();
+      }
+      return;
+    }
+    if (estado !== 'jogando') return;
+
+    modoT += dt;
+    if (poder > 0) {
+      poder -= dt;
+      if (poder <= 0) fantasmas.forEach((g) => { if (g.estado === 'assustado') g.estado = 'normal'; });
+    }
+
+    pac.v = 7.4;
+    mover(pac, dt, escolherPac, chegouPac);
+    pac.boca += pac.movendo ? dt * 16 : 0;
+
+    fantasmas.forEach((g) => {
+      if (g.estado === 'casa') {
+        g.liberar -= dt;
+        if (g.liberar <= 0) g.estado = 'saindo';
+      }
+      g.v = velocidadeFantasma(g);
+      mover(g, dt, escolherFantasma);
+    });
+
+    popups = popups.filter((p) => (p.t -= dt) > 0);
+
+    const pp = pos(pac);
+    for (const g of fantasmas) {
+      if (g.estado === 'olhos') continue;
+      const gp = pos(g);
+      if (Math.hypot(pp.x - gp.x, pp.y - gp.y) > .55) continue;
+      if (g.estado === 'assustado') {
+        combo++;
+        const ganho = Math.min(1600, 200 * 2 ** (combo - 1));
+        pontos += ganho;
+        elPontos.textContent = pontos;
+        g.estado = 'olhos';
+        popups.push({ x: gp.x + .5, y: gp.y + .5, t: .8, txt: '+' + ganho });
+      } else {
+        estado = 'morrendo';
+        tempo = 1.3;
+        return;
+      }
+    }
+
+    if (restantes <= 0) {
+      estado = 'nivel';
+      tempo = 1.6;
+    }
+  }
+
+  /* ---------- Desenho ---------- */
+  function texto(str, x, y, tam, cor) {
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = `800 ${tam * u}px ui-rounded, "Segoe UI", system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = cor;
+    ctx.fillText(str, x * u, y * u);
+    ctx.restore();
+  }
+
+  function desenharParedes() {
+    let base = COR.paredeBase, miolo = COR.paredeMiolo;
+    if (estado === 'nivel' && Math.floor(tempo * 6) % 2 === 0) { base = COR.pisca2; miolo = COR.pisca1; }
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = base; ctx.lineWidth = .84; ctx.stroke(paredes);
+    ctx.strokeStyle = miolo; ctx.lineWidth = .46; ctx.stroke(paredes);
+    ctx.fillStyle = COR.porta;
+    ctx.fillRect(9.04, 8.38, .92, .24);
+  }
+
+  function desenharPontos() {
+    ctx.fillStyle = COR.ponto;
+    const pulso = .2 + .05 * Math.sin(relogio / 180);
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const c = grade[y][x];
+        if (c === '.') {
+          ctx.beginPath(); ctx.arc(x + .5, y + .5, .09, 0, Math.PI * 2); ctx.fill();
+        } else if (c === 'o') {
+          ctx.beginPath(); ctx.arc(x + .5, y + .5, pulso, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+  }
+
+  function desenharPac() {
+    const p = pos(pac);
+    const cx = p.x + .5, cy = p.y + .5, r = .42;
+    let rot = Math.atan2(pac.dir.y, pac.dir.x), boca;
+    if (estado === 'morrendo') {
+      const k = 1 - tempo / 1.3;
+      if (k > .97) return;
+      rot = -Math.PI / 2;
+      boca = .08 + k * (Math.PI - .08);
+    } else {
+      boca = pac.movendo ? .05 + .3 * Math.abs(Math.sin(pac.boca)) : .14;
+    }
+    ctx.fillStyle = COR.pac;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, rot + boca, rot + Math.PI * 2 - boca);
+    ctx.closePath();
+    ctx.fill();
+    if (estado !== 'morrendo') {
+      ctx.fillStyle = COR.tinta;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(rot - 1.15) * .22, cy + Math.sin(rot - 1.15) * .22, .05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  function desenharFantasma(g) {
+    const p = pos(g);
+    const bob = g.estado === 'casa' ? Math.sin(relogio / 160 + g.liberar) * .06 : 0;
+    const cx = p.x + .5, cy = p.y + .5 + bob;
+    let rosto = '#f4efff';
+
+    if (g.estado !== 'olhos') {
+      let cor = g.cor;
+      if (g.estado === 'assustado') {
+        const piscando = poder < 2 && Math.floor(poder * 6) % 2 === 1;
+        cor = piscando ? '#f4efff' : '#4a5fe8';
+        rosto = piscando ? '#e8455b' : '#f4efff';
+      }
+      const w = .84 / 3, f = Math.floor(relogio / 180) % 2 ? 1 : -1;
+      ctx.fillStyle = cor;
+      ctx.beginPath();
+      ctx.arc(cx, cy - .02, .42, Math.PI, 0);
+      ctx.lineTo(cx + .42, cy + .4);
+      for (let i = 0; i < 3; i++) {
+        const x0 = cx + .42 - i * w;
+        ctx.quadraticCurveTo(x0 - w / 2, cy + .4 + .14 * (i % 2 ? 1 : -1) * f, x0 - w, cy + .4);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    if (g.estado === 'assustado') {
+      ctx.fillStyle = rosto;
+      [-1, 1].forEach((s) => { ctx.beginPath(); ctx.arc(cx + s * .14, cy - .08, .06, 0, Math.PI * 2); ctx.fill(); });
+      ctx.strokeStyle = rosto; ctx.lineWidth = .06; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(cx - .22, cy + .2);
+      for (let i = 1; i <= 4; i++) ctx.lineTo(cx - .22 + i * .11, cy + (i % 2 ? .13 : .2));
+      ctx.stroke();
+    } else {
+      [-1, 1].forEach((s) => {
+        const ex = cx + s * .15, ey = cy - .08;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(ex, ey, .13, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = COR.tinta;
+        ctx.beginPath(); ctx.arc(ex + g.dir.x * .05, ey + g.dir.y * .05, .068, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+  }
+
+  function desenhar() {
+    ctx.setTransform(dpr * u, 0, 0, dpr * u, 0, 0);
+    ctx.fillStyle = COR.fundo;
+    ctx.fillRect(0, 0, COLS, ROWS);
+    desenharParedes();
+    desenharPontos();
+    if (estado !== 'morrendo') fantasmas.forEach(desenharFantasma);
+    desenharPac();
+    popups.forEach((p) => texto(p.txt, p.x, p.y, .5, '#5ce1e6'));
+    if (estado === 'pronto') texto('Pronto!', 9.5, 11.5, .75, COR.pac);
+  }
+
+  function redimensionar() {
+    const lado = tela.clientWidth;
+    if (!lado) return;
+    dpr = window.devicePixelRatio || 1;
+    u = lado / COLS;
+    tela.width = Math.round(lado * dpr);
+    tela.height = Math.round(lado * (ROWS / COLS) * dpr);
+  }
+  new ResizeObserver(redimensionar).observe(tela);
+
+  /* ---------- Entrada ---------- */
+  const TECLAS = {
+    ArrowUp: D.cima, w: D.cima, W: D.cima,
+    ArrowDown: D.baixo, s: D.baixo, S: D.baixo,
+    ArrowLeft: D.esquerda, a: D.esquerda, A: D.esquerda,
+    ArrowRight: D.direita, d: D.direita, D: D.direita,
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (TECLAS[e.key]) { e.preventDefault(); virar(TECLAS[e.key]); return; }
+    if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
+      if (e.target instanceof HTMLElement && e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      if (estado === 'jogando') pausar(); else if (estado === 'pausa') continuar();
+    }
+  });
+
+  let toque = null;
+  tela.addEventListener('pointerdown', (e) => { toque = { x: e.clientX, y: e.clientY }; });
+  tela.addEventListener('pointerup', (e) => {
+    if (!toque) return;
+    const dx = e.clientX - toque.x, dy = e.clientY - toque.y;
+    toque = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+    virar(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? D.direita : D.esquerda) : (dy > 0 ? D.baixo : D.cima));
+  });
+
+  botao.addEventListener('click', () => {
+    if (estado === 'pausa') continuar(); else iniciarPartida();
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pausar(); });
+
+  /* ---------- Laço ---------- */
+  function quadro(agora) {
+    const dt = Math.min((agora - ultimo) / 1000, .05);
+    ultimo = agora;
+    relogio = agora;
+    atualizar(dt);
+    desenhar();
+    requestAnimationFrame(quadro);
+  }
+
+  /* ---------- Início ---------- */
+  pontos = 0; vidas = 3; nivel = 1;
+  carregarMapa();
+  resetarPosicoes();
+  atualizarPainel();
+  redimensionar();
+  botao.focus({ preventScroll: true });
+  requestAnimationFrame((t) => { ultimo = t; requestAnimationFrame(quadro); });
+})();
+</script>
 </body>
 </html>
