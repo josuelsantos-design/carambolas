@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Pacman: um jogo de labirinto com fantasmas, feito em HTML, CSS e JavaScript puro.">
-<title>Pacman</title>
+<meta name="description" content="Pecman: um jogo de labirinto com fantasmas, feito em HTML, CSS e JavaScript puro.">
+<title>Pecman</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23ffd23f'/><path d='M50 50 L100 24 L100 76 Z' fill='%23161340'/></svg>">
 <style>
   :root {
@@ -165,7 +166,7 @@
 <body>
   <main class="cartao">
     <header class="topo">
-      <h1>Pacman</h1>
+      <h1>Pecman</h1>
       <div class="placar">
         <div class="ficha"><small>Pontos</small><span id="pontos">0</span></div>
         <div class="ficha"><small>Recorde</small><span id="melhor">0</span></div>
@@ -177,7 +178,7 @@
     <div class="tabuleiro">
       <canvas id="tela" role="img" aria-label="Labirinto do jogo"></canvas>
       <div id="aviso" class="aviso">
-        <h2 id="aviso-titulo">Pacman</h2>
+        <h2 id="aviso-titulo">Pecman</h2>
         <p id="aviso-texto">Coma todos os pontos do labirinto e fuja dos fantasmas.</p>
         <button id="botao" type="button">Jogar</button>
       </div>
@@ -250,7 +251,7 @@
   let pac, fantasmas, popups = [];
   let u = 24, dpr = 1, ultimo = 0, relogio = 0;
 
-  try { melhor = parseInt(localStorage.getItem('Pacman:melhor'), 10) || 0; } catch (_) {}
+  try { melhor = parseInt(localStorage.getItem('pecman:melhor'), 10) || 0; } catch (_) {}
   elMelhor.textContent = melhor;
 
   /* ---------- Paredes (um único Path2D, em unidades de célula) ---------- */
@@ -335,7 +336,7 @@
   function salvarRecorde() {
     if (pontos > melhor) {
       melhor = pontos;
-      try { localStorage.setItem('Pacman:melhor', melhor); } catch (_) {}
+      try { localStorage.setItem('pecman:melhor', melhor); } catch (_) {}
       return true;
     }
     return false;
