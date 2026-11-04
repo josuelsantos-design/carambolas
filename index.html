@@ -350,7 +350,7 @@
       estado = 'fim';
       const recorde = salvarRecorde();
       atualizarPainel();
-      mostrar('Fim de jogo', `Você fez ${pontos} pontos.${recorde ? ' Novo recorde!' : ''}`, 'Jogar de novo');
+      mostrar('Se fudeu', `Você fez ${pontos} pontos.${recorde ? ' Novo recorde!' : ''}`, 'Jogar de novo');
     } else {
       resetarPosicoes();
       estado = 'pronto';
