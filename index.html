@@ -602,10 +602,10 @@
   }
 
   function velocidadeFantasma(g) {
-    if (g.estado === 'olhos') return 12;
-    if (g.estado === 'assustado') return 3.8;
-    if (g.estado === 'saindo' || g.estado === 'casa') return 4.5;
-    return Math.min(7.2, 6.2 + (nivel - 1) * .2);
+    if (g.estado === 'olhos') return 10;
+    if (g.estado === 'assustado') return 3;
+    if (g.estado === 'saindo' || g.estado === 'casa') return 3.6;
+    return Math.min(6, 4.8 + (nivel - 1) * .2);
   }
 
   /* ---------- Atualização ---------- */
