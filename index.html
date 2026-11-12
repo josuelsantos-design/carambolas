@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -86,9 +85,12 @@
     clip-path: polygon(0 0, 100% 0, 100% 30%, 50% 50%, 100% 70%, 100% 100%, 0 100%);
   }
 
+  /* O tamanho do tabuleiro acompanha o mapa da fase (--cols e --rows são definidos pelo JS) */
   .tabuleiro {
+    --cols: 19;
+    --rows: 21;
     position: relative;
-    width: min(100%, calc((100dvh - 190px) * 19 / 21));
+    width: min(100%, calc(var(--cols) * 28px), calc((100dvh - 190px) * var(--cols) / var(--rows)));
     min-width: 240px;
     margin: 0 auto;
     border-radius: 18px;
@@ -98,7 +100,7 @@
   canvas {
     display: block;
     width: 100%;
-    aspect-ratio: 19 / 21;
+    aspect-ratio: var(--cols) / var(--rows);
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -192,34 +194,73 @@
 (() => {
   'use strict';
 
-  /* ---------- Labirinto ----------
+  /* ---------- Labirintos (um por fase) ----------
      # parede   . ponto   o pastilha de poder   - porta da casa dos fantasmas
-     P início do jogador   G casa dos fantasmas   espaço = caminho vazio */
-  const MAPA = [
-    '###################',
-    '#........#........#',
-    '#o##.###.#.###.##o#',
-    '#.................#',
-    '#.##.#.#####.#.##.#',
-    '#....#...#...#....#',
-    '####.### # ###.####',
-    '   #.#       #.#   ',
-    '####.# ##-## #.####',
-    '    .  #GGG#  .    ',
-    '####.# ##### #.####',
-    '   #.#       #.#   ',
-    '####.# ##### #.####',
-    '#........#........#',
-    '#.##.###.#.###.##.#',
-    '#o.#.....P.....#.o#',
-    '##.#.#.#####.#.#.##',
-    '#....#...#...#....#',
-    '#.######.#.######.#',
-    '#.................#',
-    '###################',
+     P início do jogador   G casa dos fantasmas   espaço = caminho vazio
+     tunel: linha do túnel lateral (-1 = sem túnel)
+     Fase 1: pequeno (2 fantasmas) | Fase 2: médio (3 fantasmas) | Fase 3+: tradicional (4 fantasmas) */
+  const MAPAS = [
+    { tunel: -1, mapa: [ // fase 1 (pequeno, 13x13)
+      '#############',
+      '#o....#....o#',
+      '#.##.###.##.#',
+      '#...........#',
+      '#.##.....##.#',
+      '#.####-####.#',
+      '#...#GGG#...#',
+      '#.#########.#',
+      '#...........#',
+      '#.##.###.##.#',
+      '#.....P.....#',
+      '#o##.###.##o#',
+      '#############',
+    ] },
+    { tunel: -1, mapa: [ // fase 2 (médio, 15x17)
+      '###############',
+      '#o.....#.....o#',
+      '#.###.###.###.#',
+      '#.............#',
+      '#.##.......##.#',
+      '#.##.##-##.##.#',
+      '#.##.#GGG#.##.#',
+      '#.##.#####.##.#',
+      '#.............#',
+      '#.##.#####.##.#',
+      '#......P......#',
+      '#o.##.....##.o#',
+      '#.###.###.###.#',
+      '#.............#',
+      '#.##.#####.##.#',
+      '#o...........o#',
+      '###############',
+    ] },
+    { tunel: 9, mapa: [ // fase 3 em diante (tradicional, 19x21)
+      '###################',
+      '#........#........#',
+      '#o##.###.#.###.##o#',
+      '#.................#',
+      '#.##.#.#####.#.##.#',
+      '#....#...#...#....#',
+      '####.### # ###.####',
+      '   #.#       #.#   ',
+      '####.# ##-## #.####',
+      '    .  #GGG#  .    ',
+      '####.# ##### #.####',
+      '   #.#       #.#   ',
+      '####.# ##### #.####',
+      '#........#........#',
+      '#.##.###.#.###.##.#',
+      '#o.#.....P.....#.o#',
+      '##.#.#.#####.#.#.##',
+      '#....#...#...#....#',
+      '#.######.#.######.#',
+      '#.................#',
+      '###################',
+    ] },
   ];
-  const COLS = 19, ROWS = 21;
-  const SAIDA = { x: 9, y: 7 }, CASA = { x: 9, y: 9 }, TUNEL_Y = 9;
+
+  // Definidos por montarFase() conforme a fase atual
+  let MAPA, COLS, ROWS, SAIDA, CASA, TUNEL_Y, paredes;
 
   const D = {
     cima: { x: 0, y: -1 }, esquerda: { x: -1, y: 0 },
@@ -230,6 +271,7 @@
   /* ---------- Elementos ---------- */
   const tela = document.getElementById('tela');
   const ctx = tela.getContext('2d');
+  const caixa = document.querySelector('.tabuleiro');
   const elPontos = document.getElementById('pontos');
   const elMelhor = document.getElementById('melhor');
   const elNivel = document.getElementById('nivel');
@@ -255,24 +297,43 @@
   try { melhor = parseInt(localStorage.getItem('pecman:melhor'), 10) || 0; } catch (_) {}
   elMelhor.textContent = melhor;
 
-  /* ---------- Paredes (um único Path2D, em unidades de célula) ---------- */
-  const paredes = new Path2D();
+  /* ---------- Fase: escolhe o mapa, monta as paredes e ajusta o tabuleiro ---------- */
   const ehParede = (x, y) => y >= 0 && y < ROWS && x >= 0 && x < COLS && MAPA[y][x] === '#';
-  for (let y = 0; y < ROWS; y++) {
-    for (let x = 0; x < COLS; x++) {
-      if (!ehParede(x, y)) continue;
-      const cx = x + .5, cy = y + .5;
-      let ligada = false;
-      if (ehParede(x + 1, y)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + 1, cy); ligada = true; }
-      if (ehParede(x, y + 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx, cy + 1); ligada = true; }
-      if (!ligada && !ehParede(x - 1, y) && !ehParede(x, y - 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + .001, cy); }
+
+  function montarFase() {
+    const fase = MAPAS[Math.min(nivel, MAPAS.length) - 1];
+    MAPA = fase.mapa;
+    TUNEL_Y = fase.tunel;
+    ROWS = MAPA.length;
+    COLS = MAPA[0].length;
+    MAPA.forEach((linha, y) => {
+      const x = linha.indexOf('-');
+      if (x >= 0) { SAIDA = { x, y: y - 1 }; CASA = { x, y: y + 1 }; }
+    });
+
+    // Paredes: um único Path2D, em unidades de célula
+    paredes = new Path2D();
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!ehParede(x, y)) continue;
+        const cx = x + .5, cy = y + .5;
+        let ligada = false;
+        if (ehParede(x + 1, y)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + 1, cy); ligada = true; }
+        if (ehParede(x, y + 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx, cy + 1); ligada = true; }
+        if (!ligada && !ehParede(x - 1, y) && !ehParede(x, y - 1)) { paredes.moveTo(cx, cy); paredes.lineTo(cx + .001, cy); }
+      }
     }
+
+    caixa.style.setProperty('--cols', COLS);
+    caixa.style.setProperty('--rows', ROWS);
+    redimensionar();
   }
 
   /* ---------- Mapa e entidades ---------- */
   let inicioPac = { x: 9, y: 15 };
 
   function carregarMapa() {
+    montarFase();
     grade = MAPA.map((l) => l.split(''));
     restantes = 0;
     for (let y = 0; y < ROWS; y++) {
@@ -291,12 +352,12 @@
     pac = { ...nova(inicioPac.x, inicioPac.y), querer: D.esquerda, boca: 0 };
     const k = Math.max(.4, 1 - .1 * (nivel - 1));
     const base = [
-      { nome: 'vermelho', cor: '#ff6b6b', x: 9, y: 7, estado: 'normal', liberar: 0, canto: { x: 17, y: -2 } },
-      { nome: 'rosa', cor: '#ff9ed8', x: 9, y: 9, estado: 'casa', liberar: 2 * k, canto: { x: 1, y: -2 } },
-      { nome: 'ciano', cor: '#5ce1e6', x: 8, y: 9, estado: 'casa', liberar: 5 * k, canto: { x: 17, y: 22 } },
-      { nome: 'laranja', cor: '#ffa94d', x: 10, y: 9, estado: 'casa', liberar: 8 * k, canto: { x: 1, y: 22 } },
+      { nome: 'vermelho', cor: '#ff6b6b', x: SAIDA.x, y: SAIDA.y, estado: 'normal', liberar: 0, canto: { x: COLS - 2, y: -2 } },
+      { nome: 'rosa', cor: '#ff9ed8', x: CASA.x, y: CASA.y, estado: 'casa', liberar: 2 * k, canto: { x: 1, y: -2 } },
+      { nome: 'ciano', cor: '#5ce1e6', x: CASA.x - 1, y: CASA.y, estado: 'casa', liberar: 5 * k, canto: { x: COLS - 2, y: ROWS + 1 } },
+      { nome: 'laranja', cor: '#ffa94d', x: CASA.x + 1, y: CASA.y, estado: 'casa', liberar: 8 * k, canto: { x: 1, y: ROWS + 1 } },
     ];
-        const quantidade = Math.min(4, nivel + 1); // nível 1 = 2, nível 2 = 3, nível 3+ = 4
+    const quantidade = Math.min(4, nivel + 1); // fase 1 = 2 fantasmas, fase 2 = 3, fase 3+ = 4
     fantasmas = base
       .slice(0, quantidade)
       .map((b) => ({ ...nova(b.x, b.y), ...b, x: undefined, y: undefined }));
@@ -626,7 +687,7 @@
     ctx.strokeStyle = base; ctx.lineWidth = .84; ctx.stroke(paredes);
     ctx.strokeStyle = miolo; ctx.lineWidth = .46; ctx.stroke(paredes);
     ctx.fillStyle = COR.porta;
-    ctx.fillRect(9.04, 8.38, .92, .24);
+    ctx.fillRect(SAIDA.x + .04, SAIDA.y + 1.38, .92, .24);
   }
 
   function desenharPontos() {
@@ -724,7 +785,7 @@
     if (estado !== 'morrendo') fantasmas.forEach(desenharFantasma);
     desenharPac();
     popups.forEach((p) => texto(p.txt, p.x, p.y, .5, '#5ce1e6'));
-    if (estado === 'pronto') texto('Pronto!', 9.5, 11.5, .75, COR.pac);
+    if (estado === 'pronto') texto('Pronto!', COLS / 2, CASA.y + 2.5, .75, COR.pac);
   }
 
   function redimensionar() {
