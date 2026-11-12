@@ -296,7 +296,10 @@
       { nome: 'ciano', cor: '#5ce1e6', x: 8, y: 9, estado: 'casa', liberar: 5 * k, canto: { x: 17, y: 22 } },
       { nome: 'laranja', cor: '#ffa94d', x: 10, y: 9, estado: 'casa', liberar: 8 * k, canto: { x: 1, y: 22 } },
     ];
-    fantasmas = base.map((b) => ({ ...nova(b.x, b.y), ...b, x: undefined, y: undefined }));
+        const quantidade = Math.min(4, nivel + 1); // nível 1 = 2, nível 2 = 3, nível 3+ = 4
+    fantasmas = base
+      .slice(0, quantidade)
+      .map((b) => ({ ...nova(b.x, b.y), ...b, x: undefined, y: undefined }));
     poder = 0; combo = 0; modoT = 0; popups = [];
   }
 
